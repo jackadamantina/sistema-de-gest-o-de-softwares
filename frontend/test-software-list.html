@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Listagem de Softwares</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Teste - Listagem de Softwares</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Status da API</h2>
+            <div id="apiStatus" class="text-sm"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Softwares Cadastrados</h2>
+            <div id="softwareList" class="text-sm"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Teste de Criação</h2>
+            <button id="testCreate" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Criar Software de Teste
+            </button>
+            <div id="createResult" class="mt-4 text-sm"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+        
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares`);
+                const data = await response.json();
+                
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="text-green-600 font-semibold">✅ API funcionando</div>
+                    <div>Total de softwares: ${data.data.length}</div>
+                    <div>Status: ${response.status}</div>
+                `;
+                
+                return data.data;
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="text-red-600 font-semibold">❌ Erro na API</div>
+                    <div>${error.message}</div>
+                `;
+                return [];
+            }
+        }
+        
+        async function displaySoftwares(softwares) {
+            const container = document.getElementById('softwareList');
+            
+            if (softwares.length === 0) {
+                container.innerHTML = '<div class="text-gray-500">Nenhum software encontrado</div>';
+                return;
+            }
+            
+            const html = softwares.map((software, index) => `
+                <div class="border-b border-gray-200 py-2">
+                    <div class="font-semibold">${index + 1}. ${software.servico}</div>
+                    <div class="text-gray-600">Hosting: ${software.hosting}</div>
+                    <div class="text-gray-600">Acesso: ${software.acesso}</div>
+                    <div class="text-gray-600">SSO: ${software.sso}</div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        async function testCreateSoftware() {
+            const testData = {
+                servico: `Teste ${new Date().toLocaleTimeString()}`,
+                hosting: 'Cloud',
+                acesso: 'Interno',
+                sso: 'Aplicavel'
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                document.getElementById('createResult').innerHTML = `
+                    <div class="text-green-600 font-semibold">✅ Software criado com sucesso</div>
+                    <div>ID: ${result.id}</div>
+                    <div>Nome: ${result.servico}</div>
+                `;
+                
+                // Recarregar lista
+                const softwares = await checkAPIStatus();
+                displaySoftwares(softwares);
+                
+            } catch (error) {
+                document.getElementById('createResult').innerHTML = `
+                    <div class="text-red-600 font-semibold">❌ Erro ao criar software</div>
+                    <div>${error.message}</div>
+                `;
+            }
+        }
+        
+        // Inicializar teste
+        async function initTest() {
+            const softwares = await checkAPIStatus();
+            displaySoftwares(softwares);
+            
+            document.getElementById('testCreate').addEventListener('click', testCreateSoftware);
+        }
+        
+        initTest();
+    </script>
+</body>
+</html> 

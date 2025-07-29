@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role
+  status       Status    @default(Ativo)
+  avatar       String?
+  lastAccess   DateTime? @map("last_access")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  
+  // Relacionamentos
+  createdSoftwares Software[] @relation("CreatedBy")
+  updatedSoftwares Software[] @relation("UpdatedBy")
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+model Software {
+  id               String    @id @default(uuid())
+  servico          String
+  description      String?
+  url              String?
+  hosting          Hosting
+  
+  // Gestão de Acesso
+  acesso           Acesso
+  responsible      String?
+  namedUser        NamedUser? @map("named_user")
+  integratedUser   IntegratedUser? @map("integrated_user")
+  sso              SSO
+  
+  // Onboarding/Offboarding
+  onboarding       String?
+  offboarding      Offboarding?
+  offboardingType  OffboardingType? @map("offboarding_type")
+  affectedTeams    String[] @map("affected_teams")
+  
+  // Segurança
+  logsInfo         LogsInfo? @map("logs_info")
+  logsRetention    LogsRetention? @map("logs_retention")
+  mfaPolicy        MFAPolicy? @map("mfa_policy")
+  mfa              MFA
+  mfaSMS           MFASMS? @map("mfa_sms")
+  regionBlock      RegionBlock? @map("region_block")
+  passwordPolicy   PasswordPolicy? @map("password_policy")
+  
+  // LGPD
+  sensitiveData    SensitiveData? @map("sensitive_data")
+  
+  // Campos legados
+  criticidade      Criticidade @default(Media)
+  
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  createdBy        String?   @map("created_by")
+  updatedBy        String?   @map("updated_by")
+  
+  // Relacionamentos
+  creator          User?     @relation("CreatedBy", fields: [createdBy], references: [id])
+  updater          User?     @relation("UpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("softwares")
+}
+
+model AuditLog {
+  id        String    @id @default(uuid())
+  userId    String?   @map("user_id")
+  userName  String    @map("user_name")
+  action    String
+  details   String
+  type      LogType
+  createdAt DateTime  @default(now()) @map("created_at")
+  
+  // Relacionamentos
+  user      User?     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// Enums
+enum Role {
+  Admin
+  Editor
+  Visualizador
+}
+
+enum Status {
+  Ativo
+  Inativo
+}
+
+enum Hosting {
+  OnPremises @map("On-premises")
+  Cloud
+  Cloudstack
+  SaaSPublico @map("SaaS Público")
+}
+
+enum Acesso {
+  Interno
+  Externo
+}
+
+enum NamedUser {
+  Sim
+  SemAutenticacao @map("Sem autenticação")
+  Nao @map("Não")
+}
+
+enum IntegratedUser {
+  Sim
+  Nao @map("Não")
+  Integrador
+  Ambos
+}
+
+enum SSO {
+  Aplicavel @map("Aplicável")
+  Integrado
+  PossivelUpgrade @map("Possível (upgrade licença)")
+  SemPossibilidade @map("Sem possibilidade")
+  Desenvolver
+}
+
+enum Offboarding {
+  RemoverManual @map("Remover manual")
+  RemocaoAutomatica @map("Remoção automática")
+  NA @map("N/A")
+}
+
+enum OffboardingType {
+  Alta
+  Media @map("Média")
+  Baixa
+}
+
+enum LogsInfo {
+  LogsAcesso @map("Logs de acesso")
+  LogsSistema @map("Logs de sistema")
+  Ambos
+  NenhumLog @map("Nenhum log")
+}
+
+enum LogsRetention {
+  Nenhum
+  Semanal
+  Mensal
+  Diario @map("Diário")
+}
+
+enum MFAPolicy {
+  Sim
+  Nao @map("Não")
+  NaoAplicavel @map("Não aplicável")
+}
+
+enum MFA {
+  NaoTemPossibilidade @map("Não tem possibilidade")
+  Habilitado
+  NaoAplicavel @map("Não aplicável")
+}
+
+enum MFASMS {
+  Nao @map("Não")
+  Sim
+}
+
+enum RegionBlock {
+  Sim
+  Nao @map("Não")
+  NaoAplicavel @map("Não aplicável")
+  NaoPossuiFuncionalidade @map("Não possui funcionalidade")
+}
+
+enum PasswordPolicy {
+  Sim
+  Nao @map("Não")
+}
+
+enum SensitiveData {
+  Sim
+  Nao @map("Não")
+}
+
+enum Criticidade {
+  Alta
+  Media @map("Média")
+  Baixa
+}
+
+enum LogType {
+  create
+  update
+  delete
+  login
+  export
+  filter
+} 

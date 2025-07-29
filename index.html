@@ -1,0 +1,3371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoftwareHub - Sistema de Gestão de Softwares v1.2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f5f5f5;
+        }
+        .sidebar-transition { transition: all 0.3s ease-in-out; }
+        .card-shadow { 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+        }
+        .btn-primary { 
+            background-color: #337ab7;
+            border: 1px solid #2e6da4;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #286090;
+            border-color: #204d74;
+        }
+        .btn-success { 
+            background-color: #5cb85c;
+            border: 1px solid #4cae4c;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #449d44;
+            border-color: #398439;
+        }
+        .btn-warning { 
+            background-color: #f0ad4e;
+            border: 1px solid #eea236;
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #ec971f;
+            border-color: #d58512;
+        }
+        .btn-danger { 
+            background-color: #d9534f;
+            border: 1px solid #d43f3a;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c9302c;
+            border-color: #ac2925;
+        }
+        .btn-default { 
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            color: #333;
+        }
+        .btn-default:hover {
+            background-color: #e6e6e6;
+            border-color: #adadad;
+        }
+        .login-bg {
+            background-color: #337ab7;
+        }
+        .nav-item.active {
+            background-color: #e8f4fd;
+            color: #337ab7;
+            border-left: 3px solid #337ab7;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-btn:hover {
+            border-color: #337ab7;
+            color: #337ab7;
+        }
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .table-header {
+            background-color: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+        .export-btn {
+            background-color: #5cb85c;
+            border: 1px solid #4cae4c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .export-btn:hover {
+            background-color: #449d44;
+            border-color: #398439;
+        }
+        .sidebar-bg {
+            background-color: #2c3e50;
+        }
+        .sidebar-bg .nav-item {
+            color: #bdc3c7;
+        }
+        .sidebar-bg .nav-item:hover {
+            background-color: #34495e;
+            color: white;
+        }
+        .sidebar-bg .nav-item.active {
+            background-color: #337ab7;
+            color: white;
+            border-left: 3px solid #5bc0de;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="fixed inset-0 login-bg flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="w-12 h-12 bg-blue-600 rounded flex items-center justify-center mr-3">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">SoftwareHub <span class="text-sm text-blue-600 font-normal">v1.2.0</span></h1>
+                        <p class="text-sm text-gray-500">Gestão de Softwares</p>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2 text-center">Bem-vindo</h2>
+                <p class="text-gray-600 text-center">Faça login para acessar o sistema</p>
+            </div>
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="seu@email.com" value="admin@empresa.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                    <input type="password" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="••••••••" value="123456">
+                </div>
+                <button type="submit" class="w-full btn-primary py-3 px-4 rounded font-medium">
+                    Entrar
+                </button>
+                <button type="button" id="testLoginBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded font-medium mt-2">
+                    Teste Login (Debug)
+                </button>
+                <div class="text-center">
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-700">Esqueceu sua senha?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar-bg fixed left-0 top-0 h-full w-64 shadow-2xl transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out z-40">
+        <div class="p-6 border-b border-gray-600">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white"></i>
+                </div>
+                <div class="ml-3">
+                    <h1 class="text-lg font-bold text-white">SoftwareHub <span class="text-xs text-blue-200 font-normal">v1.2.0</span></h1>
+                    <p class="text-xs text-gray-300">Gestão de Softwares</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="mt-6 px-4">
+            <div class="space-y-2">
+                <a href="#" class="nav-item active flex items-center px-4 py-3 text-sm font-medium rounded-xl" data-page="dashboard">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-colors" data-page="softwares">
+                    <i class="fas fa-server mr-3"></i>
+                    Softwares
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-colors" data-page="users">
+                    <i class="fas fa-users mr-3"></i>
+                    Gestão de Usuários
+                </a>
+                <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-colors" data-page="logs">
+                    <i class="fas fa-file-alt mr-3"></i>
+                    Logs de Auditoria
+                </a>
+            </div>
+        </nav>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-600">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    RO
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium text-white">Rodrigo Oliveira</p>
+                    <p class="text-xs text-gray-300">Admin</p>
+                </div>
+                <button id="logoutBtn" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button id="mobileMenuBtn" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-3 rounded-xl shadow-lg">
+        <i class="fas fa-bars text-gray-600"></i>
+    </button>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="lg:ml-64 min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b sticky top-0 z-30">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div>
+                        <h1 id="pageTitle" class="text-2xl font-bold text-gray-900">Dashboard</h1>
+                        <p id="pageSubtitle" class="text-sm text-gray-600 mt-1">Visão geral do sistema</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button id="addSoftware" class="btn-primary px-4 py-2 rounded font-medium flex items-center">
+                            <i class="fas fa-plus mr-2"></i>
+                            Adicionar Software
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="p-4 sm:p-6 lg:p-8">
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page-content">
+                <!-- Dashboard Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 mb-1">Total de Softwares</p>
+                                <p class="text-3xl font-bold text-gray-900" id="totalSoftwares">24</p>
+                                <div class="flex items-center mt-2">
+                                    <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                                    <span class="text-xs text-green-600 font-medium">+12% vs último mês</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-600 rounded flex items-center justify-center">
+                                <i class="fas fa-server text-white text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 mb-1">Cloud Services</p>
+                                <p class="text-3xl font-bold text-gray-900" id="cloudServices">15</p>
+                                <div class="flex items-center mt-2">
+                                    <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                                    <span class="text-xs text-green-600 font-medium">+8% vs último mês</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-green-600 rounded flex items-center justify-center">
+                                <i class="fas fa-cloud text-white text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 mb-1">Com MFA</p>
+                                <p class="text-3xl font-bold text-gray-900" id="mfaEnabled">18</p>
+                                <div class="flex items-center mt-2">
+                                    <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                                    <span class="text-xs text-green-600 font-medium">+15% vs último mês</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-500 rounded flex items-center justify-center">
+                                <i class="fas fa-shield-alt text-white text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 mb-1">Usuários Ativos</p>
+                                <p class="text-3xl font-bold text-gray-900" id="activeUsers">142</p>
+                                <div class="flex items-center mt-2">
+                                    <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                                    <span class="text-xs text-green-600 font-medium">+5% vs último mês</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-600 rounded flex items-center justify-center">
+                                <i class="fas fa-users text-white text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-8 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Distribuição por Hosting</h3>
+                                <p class="text-sm text-gray-600 mt-1">Análise de infraestrutura</p>
+                            </div>
+                        </div>
+                        <div class="relative h-80">
+                            <canvas id="hostingChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-8 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Status de Segurança</h3>
+                                <p class="text-sm text-gray-600 mt-1">Métricas de conformidade</p>
+                            </div>
+                        </div>
+                        <div class="relative h-80">
+                            <canvas id="securityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Version Info -->
+                <div class="bg-blue-50 p-6 rounded-2xl border border-blue-200 mb-8">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center mr-4">
+                                <i class="fas fa-info-circle text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-blue-900">Informações da Versão</h3>
+                                <p class="text-sm text-blue-700">SoftwareHub v1.2.0 - Última atualização: 28/07/2025</p>
+                                <p class="text-xs text-blue-600 mt-1">✅ API funcionando | ✅ 6 softwares cadastrados | ✅ Sistema otimizado</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-blue-600">v1.2.0</div>
+                            <div class="text-xs text-blue-500">Build 2025.07.28</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Software List -->
+                <div class="bg-white rounded-2xl card-shadow border border-gray-100">
+                    <div class="px-8 py-6 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Lista de Softwares</h3>
+                                <p class="text-sm text-gray-600 mt-1">Gerencie todos os softwares da organização</p>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="px-8 py-4 text-left text-sm font-semibold text-gray-900">Serviço/Plataforma</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Hosting</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Acesso</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">SSO</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">MFA</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Criticidade</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="softwareTableBody" class="divide-y divide-gray-100">
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Softwares Page -->
+            <div id="softwaresPage" class="page-content hidden">
+                <div class="mb-8">
+                    <div class="bg-white p-8 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Gestão de Softwares</h3>
+                                <p class="text-sm text-gray-600 mt-1">Gerencie todos os softwares da organização</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="addSoftwareFromPage" class="btn-primary px-4 py-2 rounded font-medium flex items-center">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Adicionar Software
+                                </button>
+                                <button id="exportSoftwares" class="export-btn flex items-center">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Exportar CSV
+                                </button>
+                                <button id="toggleColumnSelector" class="btn-default px-4 py-2 rounded font-medium flex items-center">
+                                    <i class="fas fa-columns mr-2"></i>
+                                    Colunas
+                                </button>
+                                <button id="toggleAdvancedFilters" class="btn-default px-4 py-2 rounded font-medium flex items-center">
+                                    <i class="fas fa-filter mr-2"></i>
+                                    Filtros
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Seletor de Colunas -->
+                        <div id="columnSelector" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-sm font-semibold text-gray-700">Selecionar Colunas Visíveis</h4>
+                                <div class="flex gap-2">
+                                    <button id="showAllColumns" class="btn-success px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-eye mr-1"></i>Visão Completa
+                                    </button>
+                                    <button id="showEssentialColumns" class="btn-default px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-eye-slash mr-1"></i>Visão Essencial
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                <!-- Informações Gerais -->
+                                <div class="col-span-full mb-2">
+                                    <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide border-b border-gray-300 pb-1">Informações Gerais</h5>
+                                </div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="servico" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Serviço/Plataforma</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="description" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Descrição</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="url" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">URL</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="hosting" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Hosting</span>
+                                </label>
+                                
+                                <!-- Gestão de Acesso -->
+                                <div class="col-span-full mb-2 mt-4">
+                                    <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide border-b border-gray-300 pb-1">Gestão de Acesso</h5>
+                                </div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="acesso" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Acesso</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="responsible" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Responsável</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="namedUser" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Usuário Nomeado</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="integratedUser" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Usuário Integrado</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="sso" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">SSO</span>
+                                </label>
+                                
+                                <!-- Onboarding/Offboarding -->
+                                <div class="col-span-full mb-2 mt-4">
+                                    <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide border-b border-gray-300 pb-1">Onboarding/Offboarding</h5>
+                                </div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="onboarding" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Criação Onboarding</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="offboarding" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Offboarding</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="offboardingType" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Tipo Offboarding</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="affectedTeams" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Times Afetados</span>
+                                </label>
+                                
+                                <!-- Segurança -->
+                                <div class="col-span-full mb-2 mt-4">
+                                    <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide border-b border-gray-300 pb-1">Segurança</h5>
+                                </div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="logsInfo" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Informações Logs</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="logsRetention" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Retenção Logs</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="logs" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Status Logs</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="mfaPolicy" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Política MFA</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="mfa" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">MFA</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="mfaSMS" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">MFA por SMS</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="bloqueio" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Bloqueio Regional</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="passwordPolicy" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Política de Senha</span>
+                                </label>
+                                
+                                <!-- LGPD & Criticidade -->
+                                <div class="col-span-full mb-2 mt-4">
+                                    <h5 class="text-xs font-semibold text-gray-600 uppercase tracking-wide border-b border-gray-300 pb-1">LGPD & Criticidade</h5>
+                                </div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="sensitiveData" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Dados Sensíveis</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="visibleColumns" value="criticidade" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Criticidade</span>
+                                </label>
+                            </div>
+                            
+                            <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-300">
+                                <div class="text-xs text-gray-600">
+                                    <span id="selectedColumnsCount">8</span> colunas selecionadas
+                                </div>
+                                <button id="applyColumnSelection" class="btn-primary px-4 py-2 rounded text-sm">
+                                    <i class="fas fa-check mr-1"></i>Aplicar Seleção
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filtros Avançados -->
+                        <div id="advancedFilters" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">Filtros Avançados</h4>
+                            
+                            <!-- Query Builder -->
+                            <div id="queryBuilder" class="space-y-4">
+                                <div class="filter-group p-3 border border-gray-200 rounded bg-white">
+                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Campo</label>
+                                            <select class="filter-field w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                                <option value="">Selecione...</option>
+                                                <optgroup label="Informações Gerais">
+                                                    <option value="servico">Serviço/Plataforma</option>
+                                                    <option value="description">Descrição</option>
+                                                    <option value="url">URL</option>
+                                                    <option value="hosting">Hosting</option>
+                                                </optgroup>
+                                                <optgroup label="Gestão de Acesso">
+                                                    <option value="acesso">Acesso</option>
+                                                    <option value="responsible">Responsável</option>
+                                                    <option value="namedUser">Usuário Nomeado</option>
+                                                    <option value="integratedUser">Usuário Integrado</option>
+                                                    <option value="sso">SSO</option>
+                                                </optgroup>
+                                                <optgroup label="Onboarding/Offboarding">
+                                                    <option value="onboarding">Criação Onboarding</option>
+                                                    <option value="offboarding">Offboarding</option>
+                                                    <option value="offboardingType">Tipo Offboarding</option>
+                                                    <option value="affectedTeams">Times Afetados</option>
+                                                </optgroup>
+                                                <optgroup label="Segurança">
+                                                    <option value="logsInfo">Informações Logs</option>
+                                                    <option value="logsRetention">Retenção Logs</option>
+                                                    <option value="logs">Status Logs</option>
+                                                    <option value="mfaPolicy">Política MFA</option>
+                                                    <option value="mfa">MFA</option>
+                                                    <option value="mfaSMS">MFA por SMS</option>
+                                                    <option value="bloqueio">Bloqueio Regional</option>
+                                                    <option value="passwordPolicy">Política de Senha</option>
+                                                </optgroup>
+                                                <optgroup label="LGPD & Criticidade">
+                                                    <option value="sensitiveData">Dados Sensíveis</option>
+                                                    <option value="criticidade">Criticidade</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Operador</label>
+                                            <select class="filter-operator w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                                <option value="contains">Contém</option>
+                                                <option value="equals">É igual a</option>
+                                                <option value="starts">Começa com</option>
+                                                <option value="ends">Termina com</option>
+                                                <option value="not_contains">Não contém</option>
+                                                <option value="not_equals">É diferente de</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Valor</label>
+                                            <input type="text" class="filter-value w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Digite o valor...">
+                                        </div>
+                                        <div>
+                                            <button type="button" class="remove-filter w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded border border-red-300">
+                                                <i class="fas fa-trash mr-1"></i>Remover
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between mt-4">
+                                <button id="addFilterRule" class="btn-success px-4 py-2 rounded text-sm">
+                                    <i class="fas fa-plus mr-1"></i>Adicionar Regra
+                                </button>
+                                <div class="space-x-2">
+                                    <button id="clearAllFilters" class="btn-default px-4 py-2 rounded text-sm">
+                                        <i class="fas fa-times mr-1"></i>Limpar Tudo
+                                    </button>
+                                    <button id="applySoftwareFilters" class="btn-primary px-4 py-2 rounded text-sm">
+                                        <i class="fas fa-filter mr-1"></i>Aplicar Filtros
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="table-header">
+                                    <tr id="softwareTableHeader">
+                                        <!-- Headers will be populated by JavaScript -->
+                                    </tr>
+                                </thead>
+                                <tbody id="softwarePageTableBody" class="divide-y divide-gray-100">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="usersPage" class="page-content hidden">
+                <div class="mb-8">
+                    <div class="bg-white p-8 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Gestão de Usuários</h3>
+                                <p class="text-sm text-gray-600 mt-1">Gerencie usuários e permissões do sistema</p>
+                            </div>
+                            <button id="addUser" class="btn-primary px-4 py-2 rounded font-medium flex items-center">
+                                <i class="fas fa-user-plus mr-2"></i>Adicionar Usuário
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Usuário</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Email</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Perfil</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Último Acesso</th>
+                                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody" class="divide-y divide-gray-100">
+                                    <!-- Users will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Page -->
+            <div id="logsPage" class="page-content hidden">
+                <div class="mb-8">
+                    <div class="bg-white p-8 rounded-2xl card-shadow border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Logs de Auditoria</h3>
+                                <p class="text-sm text-gray-600 mt-1">Histórico de ações realizadas no sistema</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtros de Logs -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                                    <select id="logUserFilter" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Todos</option>
+                                        <option value="Rodrigo Oliveira">Rodrigo Oliveira</option>
+                                        <option value="Maria Silva">Maria Silva</option>
+                                        <option value="João Santos">João Santos</option>
+                                        <option value="Sistema">Sistema</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Ação</label>
+                                    <select id="logActionFilter" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Todas</option>
+                                        <option value="create">Criação</option>
+                                        <option value="update">Atualização</option>
+                                        <option value="delete">Exclusão</option>
+                                        <option value="login">Login</option>
+                                        <option value="export">Exportação</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data Inicial</label>
+                                    <input type="date" id="logDateFromFilter" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data Final</label>
+                                    <input type="date" id="logDateToFilter" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div class="flex justify-end mt-4 space-x-2">
+                                <button id="clearLogFilters" class="btn-default px-4 py-2 rounded text-sm">
+                                    <i class="fas fa-times mr-1"></i>Limpar
+                                </button>
+                                <button id="applyLogFilters" class="btn-primary px-4 py-2 rounded text-sm">
+                                    <i class="fas fa-filter mr-1"></i>Filtrar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tabela de Logs -->
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="table-header">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Data/Hora</th>
+                                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Usuário</th>
+                                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ação</th>
+                                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Detalhes</th>
+                                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Tipo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="logsTableBody" class="divide-y divide-gray-100">
+                                    <!-- Logs will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Software Modal -->
+    <div id="softwareModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-5 mx-auto p-8 w-11/12 max-w-6xl shadow-2xl rounded-2xl bg-white max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900" id="modalTitle">Adicionar Software</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Tabs Navigation -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="flex space-x-8">
+                    <button type="button" class="tab-btn active py-3 px-1 border-b-2 border-blue-600 font-medium text-sm text-blue-600" data-tab="general">
+                        <i class="fas fa-info-circle mr-2"></i>Informações Gerais
+                    </button>
+                    <button type="button" class="tab-btn py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="access">
+                        <i class="fas fa-key mr-2"></i>Gestão de Acesso
+                    </button>
+                    <button type="button" class="tab-btn py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="onboarding">
+                        <i class="fas fa-user-plus mr-2"></i>Onboarding/Offboarding
+                    </button>
+                    <button type="button" class="tab-btn py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="security">
+                        <i class="fas fa-shield-alt mr-2"></i>Segurança
+                    </button>
+                    <button type="button" class="tab-btn py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="lgpd">
+                        <i class="fas fa-balance-scale mr-2"></i>LGPD
+                    </button>
+                </nav>
+            </div>
+            
+            <form id="softwareForm" class="space-y-6">
+                <input type="hidden" id="editSoftwareId" value="">
+                
+                <!-- Tab 1: Informações Gerais -->
+                <div class="tab-content" id="tab-general">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Serviço/Plataforma *</label>
+                            <input type="text" id="softwareName" name="softwareName" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="Digite o nome do software">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                            <textarea id="softwareDescription" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 h-24 resize-none" placeholder="Descreva o propósito e funcionalidades do software"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">URL</label>
+                            <input type="text" id="softwareUrl" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="URL ou identificador do sistema">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Hosting *</label>
+                            <select id="softwareHosting" name="softwareHosting" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="OnPremises">On-premises</option>
+                                <option value="Cloud">Cloud</option>
+                                <option value="Cloudstack">Cloudstack</option>
+                                <option value="SaaSPublico">SaaS Público</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Gestão de Acesso -->
+                <div class="tab-content hidden" id="tab-access">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Acesso</label>
+                            <select id="softwareAccess" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Interno">Interno</option>
+                                <option value="Externo">Externo</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Responsável pelo Sistema</label>
+                            <input type="text" id="softwareResponsible" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="Descreva os times responsáveis">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Usuário Nomeado</label>
+                            <select id="softwareNamedUser" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Sim">Sim</option>
+                                <option value="SemAutenticacao">Sem autenticação</option>
+                                <option value="Nao">Não</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Usuário Integrado</label>
+                            <select id="softwareIntegratedUser" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Nao">Não</option>
+                                <option value="Integrador">Integrador</option>
+                                <option value="Ambos">Ambos</option>
+                            </select>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">SSO</label>
+                            <select id="softwareSSO" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Aplicavel">Aplicável</option>
+                                <option value="Integrado">Integrado</option>
+                                <option value="PossivelUpgradeLicenca">Possível (upgrade licença)</option>
+                                <option value="SemPossibilidade">Sem possibilidade</option>
+                                <option value="Desenvolver">Desenvolver</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Onboarding/Offboarding -->
+                <div class="tab-content hidden" id="tab-onboarding">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Criação no Onboarding</label>
+                            <textarea id="softwareOnboarding" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 h-24 resize-none" placeholder="Descreva o processo de criação no onboarding"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Offboarding</label>
+                            <select id="softwareOffboarding" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="RemoverManual">Remover manual</option>
+                                <option value="RemocaoAutomatica">Remoção automática</option>
+                                <option value="NaoAplicavel">N/A</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo do Offboarding</label>
+                            <select id="softwareOffboardingType" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Alta" class="text-red-600 font-semibold">Alta - Remover/incluir imediatamente</option>
+                                <option value="Baixa" class="text-green-600 font-semibold">Baixa - Remover/incluir por demanda</option>
+                                <option value="Media" class="text-yellow-600 font-semibold">Média - Remover/incluir sem prioridade</option>
+                            </select>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Times Afetados</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="affectedTeams" value="SRE" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">SRE</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="affectedTeams" value="DEV" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">DEV</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="affectedTeams" value="Entregabilidade" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Entregabilidade</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="affectedTeams" value="CS" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">CS</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="affectedTeams" value="Produto" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Produto</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="affectedTeams" value="Cross" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Cross</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="affectedTeams" value="Outros" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Outros</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Informações de Segurança -->
+                <div class="tab-content hidden" id="tab-security">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Informações de Logs</label>
+                            <select id="softwareLogsInfo" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="LogsAcesso">Logs de acesso</option>
+                                <option value="LogsSistema">Logs de sistema</option>
+                                <option value="Ambos">Ambos</option>
+                                <option value="NenhumLog">Nenhum log</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Retenção de Logs</label>
+                            <select id="softwareLogsRetention" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Nenhum">Nenhum</option>
+                                <option value="Semanal">Semanal</option>
+                                <option value="Mensal">Mensal</option>
+                                <option value="Diario">Diário</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Política de MFA</label>
+                            <select id="softwareMFAPolicy" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Nao">Não</option>
+                                <option value="NaoAplicavel">Não aplicável</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">MFA</label>
+                            <select id="softwareMFA" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="NaoTemPossibilidade">Não tem possibilidade</option>
+                                <option value="Habilitado">Habilitado</option>
+                                <option value="NaoAplicavel">Não aplicável</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">MFA Habilitado por SMS</label>
+                            <select id="softwareMFASMS" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Nao">Não</option>
+                                <option value="Sim">Sim</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bloqueio por Região</label>
+                            <select id="softwareRegionBlock" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Nao">Não</option>
+                                <option value="NaoAplicavel">Não aplicável</option>
+                                <option value="NaoPossuiFuncionalidade">Não possui funcionalidade</option>
+                            </select>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Política de Complexidade de Senha</label>
+                            <select id="softwarePasswordPolicy" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Nao">Não</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: LGPD -->
+                <div class="tab-content hidden" id="tab-lgpd">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Dados Sensíveis</label>
+                            <select id="softwareSensitiveData" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Nao">Não</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelModal" class="btn-default px-4 py-2 rounded font-medium">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary px-4 py-2 rounded font-medium">
+                        <span id="saveButtonText">Salvar Software</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-8 w-11/12 max-w-2xl shadow-2xl rounded-2xl bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900" id="userModalTitle">Adicionar Usuário</h3>
+                <button id="closeUserModal" class="text-gray-400 hover:text-gray-600 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="userForm" class="space-y-6">
+                <input type="hidden" id="editUserId" value="">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                        <input type="text" id="userName" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="Digite o nome completo">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <input type="email" id="userEmail" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="usuario@empresa.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Perfil *</label>
+                        <select id="userRole" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecione...</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Editor">Editor</option>
+                            <option value="Visualizador">Visualizador</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                        <select id="userStatus" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecione...</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Inativo">Inativo</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha *</label>
+                        <input type="password" id="userPassword" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="Digite a senha (mín. 6 caracteres)">
+                        <p class="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar Senha *</label>
+                        <input type="password" id="userPasswordConfirm" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="Confirme a senha">
+                    </div>
+                </div>
+                
+                <!-- Password Reset Section (only for editing) -->
+                <div id="passwordResetSection" class="hidden border-t border-gray-200 pt-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Reset de Senha</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nova Senha</label>
+                            <input type="password" id="newPassword" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="Digite a nova senha">
+                            <p class="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar Nova Senha</label>
+                            <input type="password" id="newPasswordConfirm" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500" placeholder="Confirme a nova senha">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="button" id="resetPasswordBtn" class="btn-warning px-4 py-2 rounded font-medium">
+                            <i class="fas fa-key mr-2"></i>Resetar Senha
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelUserModal" class="btn-default px-4 py-2 rounded font-medium">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary px-4 py-2 rounded font-medium">
+                        <span id="saveUserButtonText">Salvar Usuário</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        var currentPage = 'dashboard';
+        var isLoggedIn = false;
+        // API Functions
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Raw API response:', data);
+                usersData = data.users || [];
+                
+                console.log('Users loaded from API:', usersData);
+                console.log('usersData length:', usersData.length);
+                return usersData;
+            } catch (error) {
+                console.error('Error loading users:', error);
+                return [];
+            }
+        }
+        
+        async function createUser(userData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao criar usuário');
+                }
+                
+                const data = await response.json();
+                console.log('User created:', data);
+                return data;
+            } catch (error) {
+                console.error('Error creating user:', error);
+                throw error;
+            }
+        }
+        
+        async function updateUser(id, userData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao atualizar usuário');
+                }
+                
+                const data = await response.json();
+                console.log('User updated:', data);
+                return data;
+            } catch (error) {
+                console.error('Error updating user:', error);
+                throw error;
+            }
+        }
+        
+        async function resetUserPasswordAPI(id, newPassword) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}/reset-password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ newPassword })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao resetar senha');
+                }
+                
+                const data = await response.json();
+                console.log('Password reset:', data);
+                return data;
+            } catch (error) {
+                console.error('Error resetting password:', error);
+                throw error;
+            }
+        }
+        
+        async function deleteUserFromAPI(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao deletar usuário');
+                }
+                
+                console.log('User deleted successfully');
+                return true;
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                throw error;
+            }
+        }
+        
+        async function loadSoftwares() {
+            try {
+                console.log('loadSoftwares - making API request to:', `${API_BASE_URL}/softwares`);
+                const response = await fetch(`${API_BASE_URL}/softwares`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('loadSoftwares - raw API response:', data);
+                sampleData = data.data || [];
+                filteredSoftwareData = [];
+                
+                console.log('Softwares loaded from API:', sampleData);
+                console.log('loadSoftwares - sampleData length:', sampleData.length);
+                console.log('loadSoftwares - data.data length:', data.data ? data.data.length : 0);
+                return sampleData;
+            } catch (error) {
+                console.error('Error loading softwares:', error);
+                return [];
+            }
+        }
+        
+        async function createSoftware(softwareData) {
+            try {
+                console.log('createSoftware called with data:', softwareData);
+                console.log('JSON.stringify(softwareData):', JSON.stringify(softwareData));
+                
+                const response = await fetch(`${API_BASE_URL}/softwares`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(softwareData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response body:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+                }
+                
+                const result = await response.json();
+                console.log('Software created:', result);
+                return result;
+            } catch (error) {
+                console.error('Error creating software:', error);
+                throw error;
+            }
+        }
+        
+        async function updateSoftware(id, softwareData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(softwareData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Software updated:', result);
+                return result;
+            } catch (error) {
+                console.error('Error updating software:', error);
+                throw error;
+            }
+        }
+        
+        async function deleteSoftwareFromAPI(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                console.log('Software deleted from API');
+                return true;
+            } catch (error) {
+                console.error('Error deleting software:', error);
+                throw error;
+            }
+        }
+        
+        async function loadAuditLogs() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/audit`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                logsData = data.data || [];
+                filteredLogsData = [];
+                
+                console.log('Audit logs loaded from API:', logsData);
+                return logsData;
+            } catch (error) {
+                console.error('Error loading audit logs:', error);
+                return [];
+            }
+        }
+        
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares/stats`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const stats = await response.json();
+                console.log('Dashboard stats loaded from API:', stats);
+                return stats;
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                return null;
+            }
+        }
+        // Removed nextUserId - IDs are now managed by the database
+        var hostingChart, securityChart;
+        var filteredSoftwareData = [];
+        var filteredLogsData = [];
+        var visibleColumns = ['servico', 'hosting', 'acesso', 'sso', 'mfa', 'criticidade', 'bloqueio', 'logs'];
+        var allAvailableColumns = [
+            'servico', 'description', 'url', 'hosting', 'acesso', 'responsible', 'namedUser', 
+            'integratedUser', 'sso', 'onboarding', 'offboarding', 'offboardingType', 
+            'affectedTeams', 'logsInfo', 'logsRetention', 'logs', 'mfaPolicy', 'mfa', 
+            'mfaSMS', 'bloqueio', 'passwordPolicy', 'sensitiveData', 'criticidade'
+        ];
+        var essentialColumns = ['servico', 'hosting', 'acesso', 'sso', 'mfa', 'criticidade', 'bloqueio', 'logs'];
+
+        // API Configuration
+        var API_BASE_URL = '/api';
+        var authToken = null; // Removed localStorage dependency
+        
+        // Sample data (fallback)
+        var sampleData = [];
+        var filteredSoftwareData = [];
+
+        var usersData = []; // Removed local data - now loaded from API
+
+        var logsData = []; // Removed local data - now loaded from API
+
+        // Initialize app when DOM is ready
+        async function initApp() {
+            try {
+                console.log('Inicializando aplicação...');
+                
+                // Verificar se o usuário está logado
+                if (!isLoggedIn) {
+                    console.log('Usuário não logado, mostrando tela de login');
+                    showLogin();
+                    
+                    // Configurar event listeners mesmo sem estar logado
+                    console.log('Configurando event listeners para login...');
+                    setupEventListeners();
+                    
+                    return; // Não carregar dados até o login
+                }
+                
+                // Load data from API
+                console.log('Carregando dados da API...');
+                await loadSoftwares();
+                console.log('Softwares carregados:', sampleData.length);
+                await loadAuditLogs();
+                console.log('Logs carregados:', logsData.length);
+                await loadUsers();
+                console.log('Usuários carregados:', usersData.length);
+                
+                // Forçar recarga dos dados para garantir sincronização
+                await loadSoftwares();
+                
+                // Populate tables
+                console.log('initApp - sampleData length before populate:', sampleData.length);
+                populateTable();
+                populateSoftwaresPageTable();
+                populateUsersTable();
+                populateLogs();
+                await updateDashboardStats();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Initialize filters after data is loaded
+                setupSoftwareFilters();
+                
+                // Initialize charts after data is loaded
+                console.log('Inicializando gráficos com', sampleData.length, 'softwares');
+                setTimeout(initCharts, 100);
+                
+                console.log('Aplicação inicializada com sucesso');
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+            }
+        }
+
+        // Initialize charts
+        function initCharts() {
+            console.log('initCharts chamada - sampleData length:', sampleData.length);
+            initHostingChart();
+            initSecurityChart();
+        }
+
+        function initHostingChart() {
+            console.log('initHostingChart chamada');
+            var ctx = document.getElementById('hostingChart');
+            if (!ctx) {
+                console.error('Canvas hostingChart não encontrado');
+                return;
+            }
+
+            var hostingData = {};
+            sampleData.forEach(function(item) {
+                hostingData[item.hosting] = (hostingData[item.hosting] || 0) + 1;
+            });
+
+            if (hostingChart) {
+                hostingChart.destroy();
+            }
+
+            hostingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(hostingData),
+                    datasets: [{
+                        data: Object.values(hostingData),
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initSecurityChart() {
+            console.log('initSecurityChart chamada');
+            var ctx = document.getElementById('securityChart');
+            if (!ctx) {
+                console.error('Canvas securityChart não encontrado');
+                return;
+            }
+
+            var mfaEnabled = sampleData.filter(function(item) { return item.mfa === 'Habilitado'; }).length;
+            var ssoIntegrated = sampleData.filter(function(item) { return item.sso === 'Integrado'; }).length;
+            var logsActive = sampleData.filter(function(item) { return item.logs === 'Ativo'; }).length;
+            var bloqueioEnabled = sampleData.filter(function(item) { return item.bloqueio === 'Habilitado'; }).length;
+
+            if (securityChart) {
+                securityChart.destroy();
+            }
+
+            securityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['MFA Habilitado', 'SSO Integrado', 'Logs Ativos', 'Bloqueio Regional'],
+                    datasets: [{
+                        label: 'Quantidade',
+                        data: [mfaEnabled, ssoIntegrated, logsActive, bloqueioEnabled],
+                        backgroundColor: [
+                            '#10B981',
+                            '#3B82F6',
+                            '#F59E0B',
+                            '#EF4444'
+                        ],
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update dashboard statistics
+        async function updateDashboardStats() {
+            try {
+                const stats = await loadDashboardStats();
+                
+                if (stats) {
+                    // Update total softwares
+                    document.getElementById('totalSoftwares').textContent = stats.totalSoftwares || 0;
+                    
+                    // Update cloud services
+                    document.getElementById('cloudServices').textContent = stats.cloudServices || 0;
+                    
+                    // Update MFA enabled
+                    document.getElementById('mfaEnabled').textContent = stats.mfaEnabled || 0;
+                    
+                    // Update active users (fallback to local data for now)
+                    var activeUsersCount = usersData.filter(function(user) { 
+                        return user.status === 'Ativo'; 
+                    }).length;
+                    document.getElementById('activeUsers').textContent = activeUsersCount;
+                    
+                    console.log('Dashboard stats updated from API:', stats);
+                } else {
+                    // Fallback to local data
+                    document.getElementById('totalSoftwares').textContent = sampleData.length;
+                    
+                    var cloudServices = sampleData.filter(function(item) { 
+                        return item.hosting === 'Cloud' || item.hosting === 'SaaSPublico'; 
+                    }).length;
+                    document.getElementById('cloudServices').textContent = cloudServices;
+                    
+                    var mfaCount = sampleData.filter(function(item) { 
+                        return item.mfa === 'Habilitado'; 
+                    }).length;
+                    document.getElementById('mfaEnabled').textContent = mfaCount;
+                    
+                    var activeUsersCount = usersData.filter(function(user) { 
+                        return user.status === 'Ativo'; 
+                    }).length;
+                    document.getElementById('activeUsers').textContent = activeUsersCount;
+                    
+                    console.log('Dashboard stats updated from local data (fallback)');
+                }
+            } catch (error) {
+                console.error('Error updating dashboard stats:', error);
+                
+                // Fallback to local data
+                document.getElementById('totalSoftwares').textContent = sampleData.length;
+                
+                var cloudServices = sampleData.filter(function(item) { 
+                    return item.hosting === 'Cloud' || item.hosting === 'SaaSPublico'; 
+                }).length;
+                document.getElementById('cloudServices').textContent = cloudServices;
+                
+                var mfaCount = sampleData.filter(function(item) { 
+                    return item.mfa === 'Habilitado'; 
+                }).length;
+                document.getElementById('mfaEnabled').textContent = mfaCount;
+                
+                var activeUsersCount = usersData.filter(function(user) { 
+                    return user.status === 'Ativo'; 
+                }).length;
+                document.getElementById('activeUsers').textContent = activeUsersCount;
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            var navItems = document.querySelectorAll('.nav-item');
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var page = this.getAttribute('data-page');
+                    showPage(page);
+                });
+            }
+
+            // Login form
+            var loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                console.log('Configurando event listener para loginForm');
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    console.log('Login form submitted');
+                    
+                    // Simular autenticação (para desenvolvimento)
+                    var emailInput = document.querySelector('#loginForm input[type="email"]');
+                    var passwordInput = document.querySelector('#loginForm input[type="password"]');
+                    
+                    if (!emailInput || !passwordInput) {
+                        console.error('Campos de email ou senha não encontrados');
+                        alert('Erro: Campos de login não encontrados');
+                        return;
+                    }
+                    
+                    var email = emailInput.value;
+                    var password = passwordInput.value;
+                    
+                    console.log('Tentando login com:', email);
+                    
+                    // Para desenvolvimento, aceitar qualquer login
+                    if (email && password) {
+                        console.log('Login bem-sucedido, escondendo tela de login');
+                        hideLogin();
+                    } else {
+                        console.log('Credenciais inválidas');
+                        alert('Por favor, preencha email e senha');
+                    }
+                });
+            } else {
+                console.error('Login form não encontrado!');
+            }
+            
+            // Test login button
+            var testLoginBtn = document.getElementById('testLoginBtn');
+            if (testLoginBtn) {
+                console.log('Configurando botão de teste de login');
+                testLoginBtn.addEventListener('click', function() {
+                    console.log('Botão de teste de login clicado');
+                    hideLogin();
+                });
+            } else {
+                console.error('Botão de teste de login não encontrado!');
+            }
+
+            // Logout button
+            var logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    showLogin();
+                    isLoggedIn = false;
+                });
+            }
+
+            // Mobile menu
+            var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.getElementById('sidebar');
+            if (mobileMenuBtn && sidebar) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
+
+            // Software modal controls
+            setupSoftwareModal();
+            
+            // User modal controls
+            setupUserModal();
+            
+            // Tab functionality
+            setupTabs();
+            
+            // Export functionality
+            setupExportButton();
+            
+            // Software filters and columns (moved to after data loading)
+            
+            // Log filters
+            setupLogFilters();
+            
+            // Software form
+            var softwareForm = document.getElementById('softwareForm');
+            if (softwareForm) {
+                console.log('Configurando event listener para softwareForm');
+                softwareForm.addEventListener('submit', function(e) {
+                    console.log('Form submit event triggered');
+                    handleSoftwareSubmit(e);
+                });
+            } else {
+                console.error('Software form não encontrado!');
+            }
+            
+            // User form
+            var userForm = document.getElementById('userForm');
+            if (userForm) {
+                userForm.addEventListener('submit', handleUserSubmit);
+            }
+        }
+
+        // Setup tab functionality
+        function setupTabs() {
+            var tabBtns = document.querySelectorAll('.tab-btn');
+            for (var i = 0; i < tabBtns.length; i++) {
+                tabBtns[i].addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var targetTab = this.getAttribute('data-tab');
+                    switchTab(targetTab);
+                });
+            }
+        }
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Hide all tab contents
+            var tabContents = document.querySelectorAll('.tab-content');
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.add('hidden');
+            }
+            
+            // Remove active class from all tab buttons
+            var tabBtns = document.querySelectorAll('.tab-btn');
+            for (var i = 0; i < tabBtns.length; i++) {
+                tabBtns[i].classList.remove('active', 'border-blue-600', 'text-blue-600');
+                tabBtns[i].classList.add('border-transparent', 'text-gray-500');
+            }
+            
+            // Show target tab content
+            var targetContent = document.getElementById('tab-' + tabName);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+            
+            // Add active class to clicked tab button
+            var targetBtn = document.querySelector('[data-tab="' + tabName + '"]');
+            if (targetBtn) {
+                targetBtn.classList.add('active', 'border-blue-600', 'text-blue-600');
+                targetBtn.classList.remove('border-transparent', 'text-gray-500');
+            }
+        }
+
+        // Setup export functionality
+        function setupExportButton() {
+            var exportBtn = document.getElementById('exportSoftwares');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', function() {
+                    exportToCSV();
+                });
+            }
+        }
+
+        // Export data to CSV
+        function exportToCSV() {
+            var headers = [
+                'ID',
+                'Serviço/Plataforma',
+                'Descrição',
+                'URL',
+                'Hosting',
+                'Acesso',
+                'Responsável pelo Sistema',
+                'Usuário Nomeado',
+                'Usuário Integrado',
+                'SSO',
+                'Criação no Onboarding',
+                'Offboarding',
+                'Tipo do Offboarding',
+                'Times Afetados',
+                'Informações de Logs',
+                'Retenção de Logs',
+                'Política de MFA',
+                'MFA',
+                'MFA Habilitado por SMS',
+                'Bloqueio por Região',
+                'Política de Complexidade de Senha',
+                'Dados Sensíveis',
+                'Criticidade'
+            ];
+
+            var csvContent = headers.join(',') + '\n';
+
+            sampleData.forEach(function(item) {
+                var row = [
+                    item.id || '',
+                    '"' + (item.servico || '').replace(/"/g, '""') + '"',
+                    '"' + (item.description || '').replace(/"/g, '""') + '"',
+                    '"' + (item.url || '').replace(/"/g, '""') + '"',
+                    '"' + (item.hosting || '').replace(/"/g, '""') + '"',
+                    '"' + (item.acesso || '').replace(/"/g, '""') + '"',
+                    '"' + (item.responsible || '').replace(/"/g, '""') + '"',
+                    '"' + (item.namedUser || '').replace(/"/g, '""') + '"',
+                    '"' + (item.integratedUser || '').replace(/"/g, '""') + '"',
+                    '"' + (item.sso || '').replace(/"/g, '""') + '"',
+                    '"' + (item.onboarding || '').replace(/"/g, '""') + '"',
+                    '"' + (item.offboarding || '').replace(/"/g, '""') + '"',
+                    '"' + (item.offboardingType || '').replace(/"/g, '""') + '"',
+                    '"' + (item.affectedTeams ? item.affectedTeams.join('; ') : '').replace(/"/g, '""') + '"',
+                    '"' + (item.logsInfo || '').replace(/"/g, '""') + '"',
+                    '"' + (item.logsRetention || '').replace(/"/g, '""') + '"',
+                    '"' + (item.mfaPolicy || '').replace(/"/g, '""') + '"',
+                    '"' + (item.mfa || '').replace(/"/g, '""') + '"',
+                    '"' + (item.mfaSMS || '').replace(/"/g, '""') + '"',
+                    '"' + (item.regionBlock || item.bloqueio || '').replace(/"/g, '""') + '"',
+                    '"' + (item.passwordPolicy || '').replace(/"/g, '""') + '"',
+                    '"' + (item.sensitiveData || '').replace(/"/g, '""') + '"',
+                    '"' + (item.criticidade || '').replace(/"/g, '""') + '"'
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+
+            // Create and download file
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'softwares_export_' + new Date().toISOString().slice(0, 10) + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Add log entry
+            // Log handled by backend API
+        }
+
+        // Setup software filters and column management
+        function setupSoftwareFilters() {
+            console.log('setupSoftwareFilters called - sampleData length:', sampleData.length);
+            // Initialize filtered data - garantir que não interfira com a exibição inicial
+            filteredSoftwareData = [];
+            console.log('setupSoftwareFilters - filteredSoftwareData initialized as empty to avoid interference');
+            
+            // Column selector toggle
+            var toggleColumnBtn = document.getElementById('toggleColumnSelector');
+            var columnSelector = document.getElementById('columnSelector');
+            if (toggleColumnBtn && columnSelector) {
+                toggleColumnBtn.addEventListener('click', function() {
+                    columnSelector.classList.toggle('hidden');
+                });
+            }
+            
+            // Advanced filters toggle
+            var toggleFiltersBtn = document.getElementById('toggleAdvancedFilters');
+            var advancedFilters = document.getElementById('advancedFilters');
+            if (toggleFiltersBtn && advancedFilters) {
+                toggleFiltersBtn.addEventListener('click', function() {
+                    advancedFilters.classList.toggle('hidden');
+                });
+            }
+            
+            // Apply column selection
+            var applyColumnBtn = document.getElementById('applyColumnSelection');
+            if (applyColumnBtn) {
+                applyColumnBtn.addEventListener('click', function() {
+                    updateVisibleColumns();
+                    updateColumnsCount();
+                    populateSoftwaresPageTable();
+                });
+            }
+            
+            // Show all columns button
+            var showAllBtn = document.getElementById('showAllColumns');
+            if (showAllBtn) {
+                showAllBtn.addEventListener('click', function() {
+                    setAllColumns(true);
+                    updateColumnsCount();
+                    // Log handled by backend API
+                });
+            }
+            
+            // Show essential columns button
+            var showEssentialBtn = document.getElementById('showEssentialColumns');
+            if (showEssentialBtn) {
+                showEssentialBtn.addEventListener('click', function() {
+                    setEssentialColumns();
+                    updateColumnsCount();
+                    // Log handled by backend API
+                });
+            }
+            
+            // Update columns count on checkbox change
+            var checkboxes = document.querySelectorAll('input[name="visibleColumns"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].addEventListener('change', updateColumnsCount);
+            }
+            
+            // Add filter rule
+            var addFilterBtn = document.getElementById('addFilterRule');
+            if (addFilterBtn) {
+                addFilterBtn.addEventListener('click', addFilterRule);
+            }
+            
+            // Clear all filters
+            var clearFiltersBtn = document.getElementById('clearAllFilters');
+            if (clearFiltersBtn) {
+                clearFiltersBtn.addEventListener('click', clearAllSoftwareFilters);
+            }
+            
+            // Apply filters
+            var applyFiltersBtn = document.getElementById('applySoftwareFilters');
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', applySoftwareFilters);
+            }
+            
+            // Setup remove filter buttons
+            setupRemoveFilterButtons();
+            
+            // Initialize columns count
+            updateColumnsCount();
+        }
+
+        // Update visible columns based on selection
+        function updateVisibleColumns() {
+            var checkboxes = document.querySelectorAll('input[name="visibleColumns"]:checked');
+            visibleColumns = [];
+            for (var i = 0; i < checkboxes.length; i++) {
+                visibleColumns.push(checkboxes[i].value);
+            }
+        }
+
+        // Set all columns visible
+        function setAllColumns(visible) {
+            var checkboxes = document.querySelectorAll('input[name="visibleColumns"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = visible;
+            }
+            if (visible) {
+                visibleColumns = allAvailableColumns.slice();
+            } else {
+                visibleColumns = [];
+            }
+        }
+
+        // Set essential columns only
+        function setEssentialColumns() {
+            var checkboxes = document.querySelectorAll('input[name="visibleColumns"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+                checkbox.checked = essentialColumns.includes(checkbox.value);
+            }
+            visibleColumns = essentialColumns.slice();
+        }
+
+        // Update columns count display
+        function updateColumnsCount() {
+            var checkboxes = document.querySelectorAll('input[name="visibleColumns"]:checked');
+            var count = checkboxes.length;
+            var countElement = document.getElementById('selectedColumnsCount');
+            if (countElement) {
+                countElement.textContent = count;
+            }
+        }
+
+        // Add new filter rule
+        function addFilterRule() {
+            var queryBuilder = document.getElementById('queryBuilder');
+            var filterGroup = document.createElement('div');
+            filterGroup.className = 'filter-group p-3 border border-gray-200 rounded bg-white';
+            
+            filterGroup.innerHTML = 
+                '<div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium text-gray-700 mb-1">Campo</label>' +
+                        '<select class="filter-field w-full border border-gray-300 rounded px-3 py-2 text-sm">' +
+                            '<option value="">Selecione...</option>' +
+                            '<optgroup label="Informações Gerais">' +
+                                '<option value="servico">Serviço/Plataforma</option>' +
+                                '<option value="description">Descrição</option>' +
+                                '<option value="url">URL</option>' +
+                                '<option value="hosting">Hosting</option>' +
+                            '</optgroup>' +
+                            '<optgroup label="Gestão de Acesso">' +
+                                '<option value="acesso">Acesso</option>' +
+                                '<option value="responsible">Responsável</option>' +
+                                '<option value="namedUser">Usuário Nomeado</option>' +
+                                '<option value="integratedUser">Usuário Integrado</option>' +
+                                '<option value="sso">SSO</option>' +
+                            '</optgroup>' +
+                            '<optgroup label="Onboarding/Offboarding">' +
+                                '<option value="onboarding">Criação Onboarding</option>' +
+                                '<option value="offboarding">Offboarding</option>' +
+                                '<option value="offboardingType">Tipo Offboarding</option>' +
+                                '<option value="affectedTeams">Times Afetados</option>' +
+                            '</optgroup>' +
+                            '<optgroup label="Segurança">' +
+                                '<option value="logsInfo">Informações Logs</option>' +
+                                '<option value="logsRetention">Retenção Logs</option>' +
+                                '<option value="logs">Status Logs</option>' +
+                                '<option value="mfaPolicy">Política MFA</option>' +
+                                '<option value="mfa">MFA</option>' +
+                                '<option value="mfaSMS">MFA por SMS</option>' +
+                                '<option value="bloqueio">Bloqueio Regional</option>' +
+                                '<option value="passwordPolicy">Política de Senha</option>' +
+                            '</optgroup>' +
+                            '<optgroup label="LGPD & Criticidade">' +
+                                '<option value="sensitiveData">Dados Sensíveis</option>' +
+                                '<option value="criticidade">Criticidade</option>' +
+                            '</optgroup>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium text-gray-700 mb-1">Operador</label>' +
+                        '<select class="filter-operator w-full border border-gray-300 rounded px-3 py-2 text-sm">' +
+                            '<option value="contains">Contém</option>' +
+                            '<option value="equals">É igual a</option>' +
+                            '<option value="starts">Começa com</option>' +
+                            '<option value="ends">Termina com</option>' +
+                            '<option value="not_contains">Não contém</option>' +
+                            '<option value="not_equals">É diferente de</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium text-gray-700 mb-1">Valor</label>' +
+                        '<input type="text" class="filter-value w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Digite o valor...">' +
+                    '</div>' +
+                    '<div>' +
+                        '<button type="button" class="remove-filter w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded border border-red-300">' +
+                            '<i class="fas fa-trash mr-1"></i>Remover' +
+                        '</button>' +
+                    '</div>' +
+                '</div>';
+            
+            queryBuilder.appendChild(filterGroup);
+            setupRemoveFilterButtons();
+        }
+
+        // Setup remove filter button events
+        function setupRemoveFilterButtons() {
+            var removeButtons = document.querySelectorAll('.remove-filter');
+            for (var i = 0; i < removeButtons.length; i++) {
+                removeButtons[i].addEventListener('click', function() {
+                    var filterGroup = this.closest('.filter-group');
+                    if (filterGroup) {
+                        filterGroup.remove();
+                    }
+                });
+            }
+        }
+
+        // Clear all software filters
+        function clearAllSoftwareFilters() {
+            var queryBuilder = document.getElementById('queryBuilder');
+            var filterGroups = queryBuilder.querySelectorAll('.filter-group');
+            
+            // Keep at least one filter group
+            for (var i = 1; i < filterGroups.length; i++) {
+                filterGroups[i].remove();
+            }
+            
+            // Clear the first filter group
+            if (filterGroups.length > 0) {
+                var firstGroup = filterGroups[0];
+                firstGroup.querySelector('.filter-field').value = '';
+                firstGroup.querySelector('.filter-operator').value = 'contains';
+                firstGroup.querySelector('.filter-value').value = '';
+            }
+            
+            // Reset filtered data and update table
+            filteredSoftwareData = sampleData.slice();
+            console.log('clearAllSoftwareFilters - reset filteredSoftwareData to length:', filteredSoftwareData.length);
+            populateSoftwaresPageTable();
+        }
+
+        // Apply software filters
+        function applySoftwareFilters() {
+            var filterGroups = document.querySelectorAll('.filter-group');
+            var filters = [];
+            
+            for (var i = 0; i < filterGroups.length; i++) {
+                var group = filterGroups[i];
+                var field = group.querySelector('.filter-field').value;
+                var operator = group.querySelector('.filter-operator').value;
+                var value = group.querySelector('.filter-value').value;
+                
+                if (field && value) {
+                    filters.push({ field: field, operator: operator, value: value.toLowerCase() });
+                }
+            }
+            
+            console.log('applySoftwareFilters - filters count:', filters.length);
+            console.log('applySoftwareFilters - sampleData length:', sampleData.length);
+            
+            if (filters.length === 0) {
+                filteredSoftwareData = sampleData.slice();
+                console.log('applySoftwareFilters - no filters, using all data');
+            } else {
+                filteredSoftwareData = sampleData.filter(function(item) {
+                    return filters.every(function(filter) {
+                        var itemValue;
+                        
+                        // Handle special fields
+                        if (filter.field === 'affectedTeams') {
+                            // Handle array fields
+                            itemValue = item[filter.field] ? 
+                                (Array.isArray(item[filter.field]) ? item[filter.field].join(' ').toLowerCase() : item[filter.field].toLowerCase()) 
+                                : '';
+                        } else {
+                            itemValue = (item[filter.field] || '').toLowerCase();
+                        }
+                        
+                        var filterValue = filter.value;
+                        
+                        switch (filter.operator) {
+                            case 'contains':
+                                return itemValue.includes(filterValue);
+                            case 'equals':
+                                return itemValue === filterValue;
+                            case 'starts':
+                                return itemValue.startsWith(filterValue);
+                            case 'ends':
+                                return itemValue.endsWith(filterValue);
+                            case 'not_contains':
+                                return !itemValue.includes(filterValue);
+                            case 'not_equals':
+                                return itemValue !== filterValue;
+                            default:
+                                return true;
+                        }
+                    });
+                });
+            }
+            
+            populateSoftwaresPageTable();
+            // Log handled by backend API
+        }
+
+        // Setup log filters
+        function setupLogFilters() {
+            filteredLogsData = logsData.slice();
+            
+            var applyBtn = document.getElementById('applyLogFilters');
+            var clearBtn = document.getElementById('clearLogFilters');
+            
+            if (applyBtn) {
+                applyBtn.addEventListener('click', applyLogFilters);
+            }
+            
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearLogFilters);
+            }
+        }
+
+        // Apply log filters
+        function applyLogFilters() {
+            var userFilter = document.getElementById('logUserFilter').value;
+            var actionFilter = document.getElementById('logActionFilter').value;
+            var dateFromFilter = document.getElementById('logDateFromFilter').value;
+            var dateToFilter = document.getElementById('logDateToFilter').value;
+            
+            filteredLogsData = logsData.filter(function(log) {
+                var matchUser = !userFilter || log.user === userFilter;
+                var matchAction = !actionFilter || log.type === actionFilter;
+                
+                var matchDate = true;
+                if (dateFromFilter || dateToFilter) {
+                    var logDate = new Date(log.timestamp.split(' ')[0].split('/').reverse().join('-'));
+                    if (dateFromFilter) {
+                        var fromDate = new Date(dateFromFilter);
+                        matchDate = matchDate && logDate >= fromDate;
+                    }
+                    if (dateToFilter) {
+                        var toDate = new Date(dateToFilter);
+                        matchDate = matchDate && logDate <= toDate;
+                    }
+                }
+                
+                return matchUser && matchAction && matchDate;
+            });
+            
+            populateLogsTable();
+            // Log handled by backend API
+        }
+
+        // Clear log filters
+        function clearLogFilters() {
+            document.getElementById('logUserFilter').value = '';
+            document.getElementById('logActionFilter').value = '';
+            document.getElementById('logDateFromFilter').value = '';
+            document.getElementById('logDateToFilter').value = '';
+            
+            filteredLogsData = logsData.slice();
+            populateLogsTable();
+        }
+
+        function setupSoftwareModal() {
+            var modal = document.getElementById('softwareModal');
+            var addBtn = document.getElementById('addSoftware');
+            var addBtnFromPage = document.getElementById('addSoftwareFromPage');
+            var closeBtn = document.getElementById('closeModal');
+            var cancelBtn = document.getElementById('cancelModal');
+
+            if (addBtn && modal) {
+                addBtn.addEventListener('click', function() {
+                    openSoftwareModal();
+                });
+            }
+
+            if (addBtnFromPage && modal) {
+                addBtnFromPage.addEventListener('click', function() {
+                    openSoftwareModal();
+                });
+            }
+
+            if (closeBtn && modal) {
+                closeBtn.addEventListener('click', function() {
+                    closeSoftwareModal();
+                });
+            }
+
+            if (cancelBtn && modal) {
+                cancelBtn.addEventListener('click', function() {
+                    closeSoftwareModal();
+                });
+            }
+
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeSoftwareModal();
+                    }
+                });
+            }
+        }
+
+        function setupUserModal() {
+            var modal = document.getElementById('userModal');
+            var addBtn = document.getElementById('addUser');
+            var closeBtn = document.getElementById('closeUserModal');
+            var cancelBtn = document.getElementById('cancelUserModal');
+            var resetPasswordBtn = document.getElementById('resetPasswordBtn');
+
+            if (addBtn && modal) {
+                addBtn.addEventListener('click', function() {
+                    openUserModal();
+                });
+            }
+
+            if (closeBtn && modal) {
+                closeBtn.addEventListener('click', function() {
+                    closeUserModal();
+                });
+            }
+
+            if (cancelBtn && modal) {
+                cancelBtn.addEventListener('click', function() {
+                    closeUserModal();
+                });
+            }
+
+            if (resetPasswordBtn) {
+                resetPasswordBtn.addEventListener('click', function() {
+                    resetUserPassword();
+                });
+            }
+
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeUserModal();
+                    }
+                });
+            }
+        }
+
+        // Modal functions
+        function openSoftwareModal(software) {
+            console.log('openSoftwareModal called with software:', software);
+            var modal = document.getElementById('softwareModal');
+            var title = document.getElementById('modalTitle');
+            var saveBtn = document.getElementById('saveButtonText');
+            
+            if (!modal) {
+                console.error('Software modal not found!');
+                return;
+            }
+            
+            if (software) {
+                title.textContent = 'Editar Software';
+                saveBtn.textContent = 'Atualizar Software';
+                fillSoftwareForm(software);
+            } else {
+                title.textContent = 'Adicionar Software';
+                saveBtn.textContent = 'Salvar Software';
+                clearSoftwareForm();
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeSoftwareModal() {
+            var modal = document.getElementById('softwareModal');
+            modal.classList.add('hidden');
+            clearSoftwareForm();
+        }
+
+        function openUserModal(user) {
+            var modal = document.getElementById('userModal');
+            var title = document.getElementById('userModalTitle');
+            var saveBtn = document.getElementById('saveUserButtonText');
+            
+            if (user) {
+                title.textContent = 'Editar Usuário';
+                saveBtn.textContent = 'Atualizar Usuário';
+                fillUserForm(user);
+            } else {
+                title.textContent = 'Adicionar Usuário';
+                saveBtn.textContent = 'Salvar Usuário';
+                clearUserForm();
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeUserModal() {
+            var modal = document.getElementById('userModal');
+            modal.classList.add('hidden');
+            clearUserForm();
+        }
+
+        // Form functions
+        function fillSoftwareForm(software) {
+            document.getElementById('editSoftwareId').value = software.id;
+            
+            // Tab 1: Informações Gerais
+            document.getElementById('softwareName').value = software.servico || '';
+            document.getElementById('softwareDescription').value = software.description || '';
+            document.getElementById('softwareUrl').value = software.url || '';
+            document.getElementById('softwareHosting').value = software.hosting || '';
+            
+            // Tab 2: Gestão de Acesso
+            document.getElementById('softwareAccess').value = software.acesso || '';
+            document.getElementById('softwareResponsible').value = software.responsible || '';
+            document.getElementById('softwareNamedUser').value = software.namedUser || '';
+            document.getElementById('softwareIntegratedUser').value = software.integratedUser || '';
+            document.getElementById('softwareSSO').value = software.sso || '';
+            
+            // Tab 3: Onboarding/Offboarding
+            document.getElementById('softwareOnboarding').value = software.onboarding || '';
+            document.getElementById('softwareOffboarding').value = software.offboarding || '';
+            document.getElementById('softwareOffboardingType').value = software.offboardingType || '';
+            
+            // Times afetados (checkboxes)
+            var affectedTeams = software.affectedTeams || [];
+            var checkboxes = document.querySelectorAll('input[name="affectedTeams"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = affectedTeams.includes(checkboxes[i].value);
+            }
+            
+            // Tab 4: Segurança
+            document.getElementById('softwareLogsInfo').value = software.logsInfo || '';
+            document.getElementById('softwareLogsRetention').value = software.logsRetention || '';
+            document.getElementById('softwareMFAPolicy').value = software.mfaPolicy || '';
+            document.getElementById('softwareMFA').value = software.mfa || '';
+            document.getElementById('softwareMFASMS').value = software.mfaSMS || '';
+            document.getElementById('softwareRegionBlock').value = software.regionBlock || '';
+            document.getElementById('softwarePasswordPolicy').value = software.passwordPolicy || '';
+            
+            // Tab 5: LGPD
+            document.getElementById('softwareSensitiveData').value = software.sensitiveData || '';
+        }
+
+        function clearSoftwareForm() {
+            document.getElementById('editSoftwareId').value = '';
+            
+            // Tab 1: Informações Gerais
+            document.getElementById('softwareName').value = '';
+            document.getElementById('softwareDescription').value = '';
+            document.getElementById('softwareUrl').value = '';
+            document.getElementById('softwareHosting').value = '';
+            
+            // Tab 2: Gestão de Acesso
+            document.getElementById('softwareAccess').value = '';
+            document.getElementById('softwareResponsible').value = '';
+            document.getElementById('softwareNamedUser').value = '';
+            document.getElementById('softwareIntegratedUser').value = '';
+            document.getElementById('softwareSSO').value = '';
+            
+            // Tab 3: Onboarding/Offboarding
+            document.getElementById('softwareOnboarding').value = '';
+            document.getElementById('softwareOffboarding').value = '';
+            document.getElementById('softwareOffboardingType').value = '';
+            
+            // Times afetados (checkboxes)
+            var checkboxes = document.querySelectorAll('input[name="affectedTeams"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = false;
+            }
+            
+            // Tab 4: Segurança
+            document.getElementById('softwareLogsInfo').value = '';
+            document.getElementById('softwareLogsRetention').value = '';
+            document.getElementById('softwareMFAPolicy').value = '';
+            document.getElementById('softwareMFA').value = '';
+            document.getElementById('softwareMFASMS').value = '';
+            document.getElementById('softwareRegionBlock').value = '';
+            document.getElementById('softwarePasswordPolicy').value = '';
+            
+            // Tab 5: LGPD
+            document.getElementById('softwareSensitiveData').value = '';
+            
+            // Reset to first tab
+            switchTab('general');
+        }
+
+        function fillUserForm(user) {
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('userName').value = user.name;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userRole').value = user.role;
+            document.getElementById('userStatus').value = user.status;
+            
+            // Show password reset section for editing
+            document.getElementById('passwordResetSection').classList.remove('hidden');
+            
+            // Clear password fields for editing
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPasswordConfirm').value = '';
+            document.getElementById('userPassword').required = false;
+            document.getElementById('userPasswordConfirm').required = false;
+        }
+
+        function clearUserForm() {
+            document.getElementById('editUserId').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userRole').value = '';
+            document.getElementById('userStatus').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPasswordConfirm').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newPasswordConfirm').value = '';
+            
+            // Hide password reset section for new users
+            document.getElementById('passwordResetSection').classList.add('hidden');
+            
+            // Make password fields required for new users
+            document.getElementById('userPassword').required = true;
+            document.getElementById('userPasswordConfirm').required = true;
+        }
+
+        // Submit handlers
+        async function handleSoftwareSubmit(e) {
+            e.preventDefault();
+            console.log('handleSoftwareSubmit called'); // Debug log
+            
+            // Validação dos campos obrigatórios
+            var softwareName = document.getElementById('softwareName').value.trim();
+            var hosting = document.getElementById('softwareHosting').value;
+            
+            if (!softwareName) {
+                alert('Por favor, preencha o Serviço/Plataforma.');
+                return;
+            }
+            
+            if (!hosting) {
+                alert('Por favor, selecione o Hosting.');
+                return;
+            }
+            
+            var editId = document.getElementById('editSoftwareId').value;
+            console.log('editId:', editId); // Debug log
+            
+            // Coletar times afetados
+            var affectedTeams = [];
+            var checkboxes = document.querySelectorAll('input[name="affectedTeams"]:checked');
+            for (var i = 0; i < checkboxes.length; i++) {
+                affectedTeams.push(checkboxes[i].value);
+            }
+            console.log('affectedTeams:', affectedTeams); // Debug log
+            
+            var softwareData = {
+                // Tab 1: Informações Gerais
+                servico: softwareName,
+                description: document.getElementById('softwareDescription').value,
+                url: document.getElementById('softwareUrl').value,
+                hosting: document.getElementById('softwareHosting').value,
+                
+                // Tab 2: Gestão de Acesso
+                acesso: document.getElementById('softwareAccess').value || 'Interno',
+                responsible: document.getElementById('softwareResponsible').value,
+                namedUser: document.getElementById('softwareNamedUser').value || 'Nao',
+                integratedUser: document.getElementById('softwareIntegratedUser').value || 'Nao',
+                sso: document.getElementById('softwareSSO').value || 'Aplicavel',
+                
+                // Tab 3: Onboarding/Offboarding
+                onboarding: document.getElementById('softwareOnboarding').value,
+                offboarding: document.getElementById('softwareOffboarding').value || 'NA',
+                offboardingType: document.getElementById('softwareOffboardingType').value || 'Media',
+                affectedTeams: affectedTeams,
+                
+                // Tab 4: Segurança
+                logsInfo: document.getElementById('softwareLogsInfo').value || 'NenhumLog',
+                logsRetention: document.getElementById('softwareLogsRetention').value || 'Nenhum',
+                mfaPolicy: document.getElementById('softwareMFAPolicy').value || 'NaoAplicavel',
+                mfa: document.getElementById('softwareMFA').value || 'NaoTemPossibilidade',
+                mfaSMS: document.getElementById('softwareMFASMS').value || 'Nao',
+                regionBlock: document.getElementById('softwareRegionBlock').value || 'NaoAplicavel',
+                passwordPolicy: document.getElementById('softwarePasswordPolicy').value || 'Nao',
+                
+                // Tab 5: LGPD
+                sensitiveData: document.getElementById('softwareSensitiveData').value || 'Nao',
+                
+                // Campo legado para compatibilidade
+                criticidade: 'Media' // valor padrão
+            };
+            
+            console.log('softwareData:', softwareData); // Debug log
+            console.log('softwareData JSON:', JSON.stringify(softwareData)); // Debug log
+            
+            try {
+                if (editId) {
+                    // Edit existing software
+                    console.log('Editing existing software'); // Debug log
+                    await updateSoftware(editId, softwareData);
+                } else {
+                    // Add new software
+                    console.log('Adding new software'); // Debug log
+                    await createSoftware(softwareData);
+                }
+                
+                console.log('Updating UI...'); // Debug log
+                
+                // Reload data from API
+                await loadSoftwares();
+                
+                // Update UI
+                populateTable();
+                populateSoftwaresPageTable();
+                await updateDashboardStats();
+                initCharts();
+                closeSoftwareModal();
+                
+                console.log('Software submit completed'); // Debug log
+                
+                // Mostrar mensagem de sucesso
+                alert('Software salvo com sucesso!');
+                
+            } catch (error) {
+                console.error('Erro ao salvar software:', error);
+                alert('Erro ao salvar software. Verifique o console para mais detalhes.');
+            }
+        }
+
+        async function handleUserSubmit(e) {
+            e.preventDefault();
+            
+            var editId = document.getElementById('editUserId').value;
+            var password = document.getElementById('userPassword').value;
+            var passwordConfirm = document.getElementById('userPasswordConfirm').value;
+            
+            // Validate password for new users
+            if (!editId) {
+                if (password.length < 6) {
+                    alert('A senha deve ter pelo menos 6 caracteres.');
+                    return;
+                }
+                if (password !== passwordConfirm) {
+                    alert('As senhas não coincidem.');
+                    return;
+                }
+            }
+            
+            var userData = {
+                name: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                role: document.getElementById('userRole').value,
+                status: document.getElementById('userStatus').value
+            };
+            
+            // Add password for new users
+            if (!editId) {
+                userData.password = password;
+            }
+            
+            try {
+                if (editId) {
+                    // Edit existing user
+                    await updateUser(editId, userData);
+                } else {
+                    // Add new user
+                    await createUser(userData);
+                }
+                
+                // Reload data from API
+                await loadUsers();
+                
+                // Update UI
+                populateUsersTable();
+                updateDashboardStats();
+                closeUserModal();
+                
+                alert('Usuário salvo com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar usuário:', error);
+                alert('Erro ao salvar usuário: ' + error.message);
+            }
+        }
+
+        // CRUD functions
+        function editSoftware(id) {
+            console.log('editSoftware called with id:', id); // Debug log
+            console.log('sampleData length:', sampleData.length);
+            console.log('sampleData IDs:', sampleData.map(item => item.id));
+            console.log('sampleData:', sampleData);
+            
+            var software = sampleData.find(function(item) { 
+                console.log('Comparing item.id:', item.id, 'with id:', id, 'result:', item.id === id);
+                return item.id === id; 
+            });
+            console.log('Found software:', software); // Debug log
+            if (software) {
+                console.log('Opening software modal for editing');
+                openSoftwareModal(software);
+            } else {
+                console.error('Software not found with id:', id); // Debug log
+                alert('Software não encontrado!');
+            }
+        }
+
+        async function deleteSoftware(id) {
+            console.log('deleteSoftware called with id:', id); // Debug log
+            console.log('sampleData length:', sampleData.length);
+            console.log('sampleData IDs:', sampleData.map(item => item.id));
+            
+            if (confirm('Tem certeza que deseja excluir este software?')) {
+                console.log('User confirmed deletion'); // Debug log
+                
+                try {
+                    await deleteSoftwareFromAPI(id);
+                    
+                    console.log('Updating UI...'); // Debug log
+                    
+                    // Reload data from API
+                    await loadSoftwares();
+                    
+                    // Update UI
+                    populateTable();
+                    populateSoftwaresPageTable();
+                    await updateDashboardStats();
+                    initCharts();
+                    
+                    console.log('Software deletion completed'); // Debug log
+                    alert('Software excluído com sucesso!');
+                } catch (error) {
+                    console.error('Error deleting software:', error);
+                    alert('Erro ao excluir software. Verifique o console para mais detalhes.');
+                }
+            } else {
+                console.log('User cancelled deletion'); // Debug log
+            }
+        }
+
+        function editUser(id) {
+            var user = usersData.find(function(u) { return u.id == id; });
+            if (user) {
+                openUserModal(user);
+            }
+        }
+
+        async function deleteUser(id) {
+            if (confirm('Tem certeza que deseja excluir este usuário?')) {
+                try {
+                    await deleteUserFromAPI(id);
+                    
+                    // Reload data from API
+                    await loadUsers();
+                    
+                    // Update UI
+                    populateUsersTable();
+                    updateDashboardStats();
+                    
+                    alert('Usuário excluído com sucesso!');
+                } catch (error) {
+                    console.error('Erro ao excluir usuário:', error);
+                    alert('Erro ao excluir usuário: ' + error.message);
+                }
+            }
+        }
+
+        async function resetUserPassword() {
+            var newPassword = document.getElementById('newPassword').value;
+            var newPasswordConfirm = document.getElementById('newPasswordConfirm').value;
+            var editId = document.getElementById('editUserId').value;
+            
+            if (!editId) {
+                alert('Nenhum usuário selecionado para reset de senha.');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('A nova senha deve ter pelo menos 6 caracteres.');
+                return;
+            }
+            
+            if (newPassword !== newPasswordConfirm) {
+                alert('As novas senhas não coincidem.');
+                return;
+            }
+            
+            try {
+                // Call API to reset password
+                await resetUserPasswordAPI(editId, newPassword);
+                
+                // Clear password fields
+                document.getElementById('newPassword').value = '';
+                document.getElementById('newPasswordConfirm').value = '';
+                
+                alert('Senha resetada com sucesso!');
+            } catch (error) {
+                console.error('Erro ao resetar senha:', error);
+                alert('Erro ao resetar senha: ' + error.message);
+            }
+        }
+
+        // Logs are now handled by the backend API
+
+        // Navigation functions
+        function showPage(pageName) {
+            // Hide all pages
+            var pages = document.querySelectorAll('.page-content');
+            for (var i = 0; i < pages.length; i++) {
+                pages[i].classList.add('hidden');
+            }
+            
+            // Show selected page
+            var selectedPage = document.getElementById(pageName + 'Page');
+            if (selectedPage) {
+                selectedPage.classList.remove('hidden');
+            }
+            
+            // Update navigation
+            var navItems = document.querySelectorAll('.nav-item');
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].classList.remove('active');
+                navItems[i].classList.add('text-gray-600');
+            }
+            
+            var activeNav = document.querySelector('[data-page="' + pageName + '"]');
+            if (activeNav) {
+                activeNav.classList.add('active');
+                activeNav.classList.remove('text-gray-600');
+            }
+            
+            // Update page title
+            var titles = {
+                dashboard: { title: 'Dashboard', subtitle: 'Visão geral do sistema' },
+                softwares: { title: 'Softwares', subtitle: 'Gerencie todos os softwares' },
+                users: { title: 'Gestão de Usuários', subtitle: 'Administre usuários e permissões' },
+                logs: { title: 'Logs de Auditoria', subtitle: 'Histórico de ações do sistema' }
+            };
+            
+            if (titles[pageName]) {
+                var titleEl = document.getElementById('pageTitle');
+                var subtitleEl = document.getElementById('pageSubtitle');
+                if (titleEl) titleEl.textContent = titles[pageName].title;
+                if (subtitleEl) subtitleEl.textContent = titles[pageName].subtitle;
+            }
+            
+            currentPage = pageName;
+        }
+
+        // Login functions
+        function showLogin() {
+            console.log('showLogin chamada');
+            var loginScreen = document.getElementById('loginScreen');
+            if (loginScreen) {
+                console.log('Mostrando tela de login');
+                loginScreen.classList.remove('hidden');
+            } else {
+                console.error('Login screen não encontrada!');
+            }
+        }
+
+        function hideLogin() {
+            console.log('hideLogin chamada');
+            var loginScreen = document.getElementById('loginScreen');
+            if (loginScreen) {
+                console.log('Escondendo tela de login');
+                loginScreen.classList.add('hidden');
+            } else {
+                console.error('Login screen não encontrada!');
+            }
+            isLoggedIn = true;
+            console.log('isLoggedIn definido como true');
+            
+            // Inicializar aplicação após login
+            console.log('Login realizado, inicializando aplicação...');
+            
+            // Aguardar um pouco para garantir que o DOM está pronto
+            setTimeout(function() {
+                initApp();
+            }, 100);
+        }
+
+        // Populate software table (dashboard)
+        function populateTable() {
+            console.log('populateTable called - sampleData length:', sampleData.length); // Debug log
+            var tbody = document.getElementById('softwareTableBody');
+            if (!tbody) {
+                console.error('softwareTableBody not found'); // Debug log
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            for (var i = 0; i < sampleData.length; i++) {
+                var item = sampleData[i];
+                var row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                var criticidadeColor = {
+                    'Alta': 'bg-red-100 text-red-800',
+                    'Média': 'bg-yellow-100 text-yellow-800',
+                    'Baixa': 'bg-green-100 text-green-800'
+                };
+                
+                var mfaColor = item.mfa === 'Habilitado' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                
+                row.innerHTML = 
+                    '<td class="px-8 py-5">' +
+                        '<div class="flex items-center">' +
+                            '<div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center mr-4">' +
+                                '<i class="fas fa-server text-white text-sm"></i>' +
+                            '</div>' +
+                            '<div>' +
+                                '<div class="text-sm font-semibold text-gray-900">' + item.servico + '</div>' +
+                                '<div class="text-xs text-gray-500">' + item.url + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-6 py-5">' +
+                        '<span class="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">' + item.hosting + '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-5 text-sm text-gray-900 font-medium">' + item.acesso + '</td>' +
+                    '<td class="px-6 py-5 text-sm text-gray-900 font-medium">' + item.sso + '</td>' +
+                    '<td class="px-6 py-5">' +
+                        '<span class="px-3 py-1 text-xs font-semibold ' + mfaColor + ' rounded-full">' + item.mfa + '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-5">' +
+                        '<span class="px-3 py-1 text-xs font-semibold ' + criticidadeColor[item.criticidade] + ' rounded-full">' + item.criticidade + '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-5">' +
+                        '<div class="flex space-x-2">' +
+                            '<button onclick="editSoftware(\'' + item.id + '\')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">' +
+                                '<i class="fas fa-edit"></i>' +
+                            '</button>' +
+                            '<button onclick="deleteSoftware(\'' + item.id + '\')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">' +
+                                '<i class="fas fa-trash"></i>' +
+                            '</button>' +
+                        '</div>' +
+                    '</td>';
+                
+                tbody.appendChild(row);
+            }
+        }
+
+        // Populate software table (softwares page)
+        function populateSoftwaresPageTable() {
+            console.log('populateSoftwaresPageTable called'); // Debug log
+            var tbody = document.getElementById('softwarePageTableBody');
+            var thead = document.getElementById('softwareTableHeader');
+            if (!tbody || !thead) {
+                console.error('Table elements not found:', { tbody: !!tbody, thead: !!thead }); // Debug log
+                return;
+            }
+            
+            // Update table headers based on visible columns
+            var columnConfig = {
+                'servico': { label: 'Serviço/Plataforma', class: 'px-8 py-3' },
+                'description': { label: 'Descrição', class: 'px-6 py-3' },
+                'url': { label: 'URL', class: 'px-6 py-3' },
+                'hosting': { label: 'Hosting', class: 'px-6 py-3' },
+                'acesso': { label: 'Acesso', class: 'px-6 py-3' },
+                'responsible': { label: 'Responsável', class: 'px-6 py-3' },
+                'namedUser': { label: 'Usuário Nomeado', class: 'px-6 py-3' },
+                'integratedUser': { label: 'Usuário Integrado', class: 'px-6 py-3' },
+                'sso': { label: 'SSO', class: 'px-6 py-3' },
+                'onboarding': { label: 'Criação Onboarding', class: 'px-6 py-3' },
+                'offboarding': { label: 'Offboarding', class: 'px-6 py-3' },
+                'offboardingType': { label: 'Tipo Offboarding', class: 'px-6 py-3' },
+                'affectedTeams': { label: 'Times Afetados', class: 'px-6 py-3' },
+                'logsInfo': { label: 'Informações Logs', class: 'px-6 py-3' },
+                'logsRetention': { label: 'Retenção Logs', class: 'px-6 py-3' },
+                'logs': { label: 'Status Logs', class: 'px-6 py-3' },
+                'mfaPolicy': { label: 'Política MFA', class: 'px-6 py-3' },
+                'mfa': { label: 'MFA', class: 'px-6 py-3' },
+                'mfaSMS': { label: 'MFA por SMS', class: 'px-6 py-3' },
+                'bloqueio': { label: 'Bloqueio Regional', class: 'px-6 py-3' },
+                'passwordPolicy': { label: 'Política de Senha', class: 'px-6 py-3' },
+                'sensitiveData': { label: 'Dados Sensíveis', class: 'px-6 py-3' },
+                'criticidade': { label: 'Criticidade', class: 'px-6 py-3' }
+            };
+            
+            thead.innerHTML = '';
+            for (var j = 0; j < visibleColumns.length; j++) {
+                var col = visibleColumns[j];
+                if (columnConfig[col]) {
+                    var th = document.createElement('th');
+                    th.className = columnConfig[col].class + ' text-left text-sm font-semibold text-gray-700';
+                    th.textContent = columnConfig[col].label;
+                    thead.appendChild(th);
+                }
+            }
+            
+            // Always show actions column
+            var actionsHeader = document.createElement('th');
+            actionsHeader.className = 'px-6 py-3 text-left text-sm font-semibold text-gray-700';
+            actionsHeader.textContent = 'Ações';
+            thead.appendChild(actionsHeader);
+            
+            tbody.innerHTML = '';
+            
+            // Forçar uso dos dados originais para garantir que todos os softwares sejam exibidos
+            var dataToShow = sampleData;
+            console.log('populateSoftwaresPageTable - sampleData length:', sampleData.length);
+            console.log('populateSoftwaresPageTable - filteredSoftwareData length:', filteredSoftwareData.length);
+            console.log('populateSoftwaresPageTable - dataToShow length:', dataToShow.length);
+            console.log('populateSoftwaresPageTable - sampleData content:', sampleData.map(item => item.servico));
+            
+            console.log('populateSoftwaresPageTable - processing items, total:', dataToShow.length);
+            
+            // Teste: Verificar se todos os softwares estão sendo processados
+            if (dataToShow.length !== 6) {
+                console.warn('AVISO: Esperado 6 softwares, mas encontrado:', dataToShow.length);
+                console.warn('Softwares encontrados:', dataToShow.map(item => item.servico));
+            } else {
+                console.log('✅ SUCESSO: Todos os 6 softwares estão sendo processados');
+                console.log('Softwares:', dataToShow.map(item => item.servico));
+            }
+            
+            for (var i = 0; i < dataToShow.length; i++) {
+                var item = dataToShow[i];
+                console.log('populateSoftwaresPageTable - processing item', i + 1, ':', item.servico);
+                var row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                var criticidadeColor = {
+                    'Alta': 'bg-red-100 text-red-800',
+                    'Média': 'bg-yellow-100 text-yellow-800',
+                    'Baixa': 'bg-green-100 text-green-800'
+                };
+                
+                var getStatusColor = function(status) {
+                    if (status === 'Habilitado' || status === 'Integrado' || status === 'Ativo') {
+                        return 'bg-green-100 text-green-800';
+                    } else if (status === 'Aplicável') {
+                        return 'bg-yellow-100 text-yellow-800';
+                    } else if (status === 'Desenvolver') {
+                        return 'bg-orange-100 text-orange-800';
+                    } else {
+                        return 'bg-red-100 text-red-800';
+                    }
+                };
+                
+                // Build row HTML based on visible columns
+                var rowHTML = '';
+                
+                for (var k = 0; k < visibleColumns.length; k++) {
+                    var col = visibleColumns[k];
+                    var cellContent = '';
+                    
+                    switch (col) {
+                        case 'servico':
+                            cellContent = '<td class="px-8 py-5">' +
+                                '<div class="flex items-center">' +
+                                    '<div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center mr-4">' +
+                                        '<i class="fas fa-server text-white text-sm"></i>' +
+                                    '</div>' +
+                                    '<div>' +
+                                        '<div class="text-sm font-semibold text-gray-900">' + (item.servico || '') + '</div>' +
+                                        '<div class="text-xs text-gray-500">' + (item.url || '') + '</div>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</td>';
+                            break;
+                        case 'description':
+                            cellContent = '<td class="px-6 py-5 text-sm text-gray-900 max-w-xs">' +
+                                '<div class="truncate" title="' + (item.description || 'N/A') + '">' + (item.description || 'N/A') + '</div>' +
+                            '</td>';
+                            break;
+                        case 'url':
+                            cellContent = '<td class="px-6 py-5 text-sm text-blue-600 max-w-xs">' +
+                                '<a href="' + (item.url || '#') + '" target="_blank" class="hover:underline truncate block" title="' + (item.url || 'N/A') + '">' + (item.url || 'N/A') + '</a>' +
+                            '</td>';
+                            break;
+                        case 'hosting':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">' + (item.hosting || '') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'acesso':
+                            cellContent = '<td class="px-6 py-5 text-sm text-gray-900 font-medium">' + (item.acesso || '') + '</td>';
+                            break;
+                        case 'responsible':
+                            cellContent = '<td class="px-6 py-5 text-sm text-gray-900">' + (item.responsible || 'N/A') + '</td>';
+                            break;
+                        case 'namedUser':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.namedUser || '') + ' rounded-full">' + (item.namedUser || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'integratedUser':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.integratedUser || '') + ' rounded-full">' + (item.integratedUser || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'sso':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.sso) + ' rounded-full">' + (item.sso || '') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'onboarding':
+                            cellContent = '<td class="px-6 py-5 text-sm text-gray-900 max-w-xs">' +
+                                '<div class="truncate" title="' + (item.onboarding || 'N/A') + '">' + (item.onboarding || 'N/A') + '</div>' +
+                            '</td>';
+                            break;
+                        case 'offboarding':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.offboarding || '') + ' rounded-full">' + (item.offboarding || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'offboardingType':
+                            var typeColor = '';
+                            if (item.offboardingType === 'Alta') typeColor = 'bg-red-100 text-red-800';
+                            else if (item.offboardingType === 'Média') typeColor = 'bg-yellow-100 text-yellow-800';
+                            else if (item.offboardingType === 'Baixa') typeColor = 'bg-green-100 text-green-800';
+                            else typeColor = 'bg-gray-100 text-gray-800';
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + typeColor + ' rounded-full">' + (item.offboardingType || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'affectedTeams':
+                            var teams = item.affectedTeams ? (Array.isArray(item.affectedTeams) ? item.affectedTeams.join(', ') : item.affectedTeams) : 'N/A';
+                            cellContent = '<td class="px-6 py-5 text-sm text-gray-900 max-w-xs">' +
+                                '<div class="truncate" title="' + teams + '">' + teams + '</div>' +
+                            '</td>';
+                            break;
+                        case 'logsInfo':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.logsInfo || '') + ' rounded-full">' + (item.logsInfo || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'logsRetention':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.logsRetention || '') + ' rounded-full">' + (item.logsRetention || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'logs':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.logs || item.logsInfo || '') + ' rounded-full">' + (item.logs || item.logsInfo || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'mfaPolicy':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.mfaPolicy || '') + ' rounded-full">' + (item.mfaPolicy || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'mfa':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.mfa) + ' rounded-full">' + (item.mfa || '') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'mfaSMS':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.mfaSMS || '') + ' rounded-full">' + (item.mfaSMS || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'bloqueio':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.bloqueio || item.regionBlock || '') + ' rounded-full">' + (item.bloqueio || item.regionBlock || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'passwordPolicy':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + getStatusColor(item.passwordPolicy || '') + ' rounded-full">' + (item.passwordPolicy || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'sensitiveData':
+                            var sensitiveColor = (item.sensitiveData === 'Sim') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + sensitiveColor + ' rounded-full">' + (item.sensitiveData || 'N/A') + '</span>' +
+                            '</td>';
+                            break;
+                        case 'criticidade':
+                            cellContent = '<td class="px-6 py-5">' +
+                                '<span class="px-3 py-1 text-xs font-semibold ' + criticidadeColor[item.criticidade] + ' rounded-full">' + (item.criticidade || '') + '</span>' +
+                            '</td>';
+                            break;
+                    }
+                    
+                    rowHTML += cellContent;
+                }
+                
+                // Always add actions column
+                rowHTML += '<td class="px-6 py-5">' +
+                    '<div class="flex space-x-2">' +
+                        '<button onclick="editSoftware(\'' + item.id + '\')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">' +
+                            '<i class="fas fa-edit"></i>' +
+                        '</button>' +
+                        '<button onclick="deleteSoftware(\'' + item.id + '\')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">' +
+                            '<i class="fas fa-trash"></i>' +
+                        '</button>' +
+                    '</div>' +
+                '</td>';
+                
+                row.innerHTML = rowHTML;
+                tbody.appendChild(row);
+            }
+        }
+
+        // Populate users table
+        function populateUsersTable() {
+            console.log('populateUsersTable called');
+            console.log('usersData length:', usersData.length);
+            console.log('usersData:', usersData);
+            
+            var tbody = document.getElementById('usersTableBody');
+            if (!tbody) {
+                console.error('usersTableBody not found');
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            for (var i = 0; i < usersData.length; i++) {
+                var user = usersData[i];
+                var row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                var statusColor = user.status === 'Ativo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                var roleColors = {
+                    'Admin': 'bg-purple-100 text-purple-800',
+                    'Editor': 'bg-blue-100 text-blue-800',
+                    'Visualizador': 'bg-gray-100 text-gray-800'
+                };
+                
+                row.innerHTML = 
+                    '<td class="px-6 py-5">' +
+                        '<div class="flex items-center">' +
+                            '<div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-4">' +
+                                '<span class="text-white text-sm font-bold">' + user.avatar + '</span>' +
+                            '</div>' +
+                            '<div>' +
+                                '<div class="text-sm font-semibold text-gray-900">' + user.name + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-6 py-5 text-sm text-gray-900 font-medium">' + user.email + '</td>' +
+                    '<td class="px-6 py-5">' +
+                        '<span class="px-3 py-1 text-xs font-semibold ' + roleColors[user.role] + ' rounded-full">' + user.role + '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-5">' +
+                        '<span class="px-3 py-1 text-xs font-semibold ' + statusColor + ' rounded-full">' + user.status + '</span>' +
+                    '</td>' +
+                    '<td class="px-6 py-5 text-sm text-gray-600">' + user.lastAccess + '</td>' +
+                    '<td class="px-6 py-5">' +
+                        '<div class="flex space-x-2">' +
+                            '<button onclick="editUser(\'' + user.id + '\')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">' +
+                                '<i class="fas fa-edit"></i>' +
+                            '</button>' +
+                            '<button onclick="deleteUser(\'' + user.id + '\')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">' +
+                                '<i class="fas fa-trash"></i>' +
+                            '</button>' +
+                        '</div>' +
+                    '</td>';
+                
+                tbody.appendChild(row);
+            }
+        }
+
+        // Populate logs table
+        function populateLogsTable() {
+            console.log('populateLogsTable called');
+            console.log('logsData length:', logsData.length);
+            console.log('filteredLogsData length:', filteredLogsData.length);
+            console.log('logsData:', logsData);
+            
+            var tbody = document.getElementById('logsTableBody');
+            if (!tbody) {
+                console.error('logsTableBody not found');
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            var typeIcons = {
+                'create': 'fas fa-plus-circle text-green-600',
+                'update': 'fas fa-edit text-blue-600',
+                'delete': 'fas fa-trash text-red-600',
+                'login': 'fas fa-sign-in-alt text-purple-600',
+                'export': 'fas fa-download text-orange-600',
+                'filter': 'fas fa-filter text-blue-600'
+            };
+            
+            var typeLabels = {
+                'create': 'Criação',
+                'update': 'Atualização',
+                'delete': 'Exclusão',
+                'login': 'Login',
+                'export': 'Exportação',
+                'filter': 'Filtro'
+            };
+            
+            var dataToShow = filteredLogsData.length > 0 ? filteredLogsData : logsData;
+            
+            for (var i = 0; i < dataToShow.length; i++) {
+                var log = dataToShow[i];
+                var row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                row.innerHTML = 
+                    '<td class="px-6 py-4 text-sm text-gray-900">' + formatDate(log.createdAt) + '</td>' +
+                    '<td class="px-6 py-4">' +
+                        '<div class="flex items-center">' +
+                            '<div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">' +
+                                '<span class="text-gray-600 text-xs font-semibold">' + log.userName.split(' ').map(function(n) { return n[0]; }).join('').substring(0, 2) + '</span>' +
+                            '</div>' +
+                            '<span class="text-sm font-medium text-gray-900">' + log.userName + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-6 py-4">' +
+                        '<div class="flex items-center">' +
+                            '<i class="' + typeIcons[log.type] + ' text-sm mr-2"></i>' +
+                            '<span class="text-sm text-gray-900">' + log.action + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-6 py-4 text-sm text-gray-600">' + log.details + '</td>' +
+                    '<td class="px-6 py-4">' +
+                        '<span class="px-2 py-1 text-xs font-medium rounded-full ' + getLogTypeColor(log.type) + '">' + (typeLabels[log.type] || log.type) + '</span>' +
+                    '</td>';
+                
+                tbody.appendChild(row);
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function getLogTypeColor(type) {
+            switch (type) {
+                case 'create':
+                    return 'bg-green-100 text-green-800';
+                case 'update':
+                    return 'bg-blue-100 text-blue-800';
+                case 'delete':
+                    return 'bg-red-100 text-red-800';
+                case 'login':
+                    return 'bg-purple-100 text-purple-800';
+                case 'export':
+                    return 'bg-orange-100 text-orange-800';
+                case 'filter':
+                    return 'bg-blue-100 text-blue-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Keep the old populateLogs for backward compatibility (dashboard)
+        function populateLogs() {
+            populateLogsTable();
+        }
+
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Logs de Auditoria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Teste - Logs de Auditoria</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Status da API</h2>
+            <div id="apiStatus" class="text-sm"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Logs de Auditoria</h2>
+            <div id="logsList" class="text-sm">
+                Carregando...
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Dados da API</h2>
+            <div id="apiData" class="text-sm text-gray-600">
+                Carregando...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+        var logsData = [];
+        
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/audit`);
+                const data = await response.json();
+                
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="text-green-600 font-semibold">✅ API funcionando</div>
+                    <div>Total de logs: ${data.data ? data.data.length : 0}</div>
+                    <div>Status: ${response.status}</div>
+                `;
+                
+                return data;
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="text-red-600 font-semibold">❌ Erro na API</div>
+                    <div>${error.message}</div>
+                `;
+                return null;
+            }
+        }
+        
+        async function loadAuditLogs() {
+            try {
+                console.log('loadAuditLogs called');
+                const response = await fetch(`${API_BASE_URL}/audit`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Raw API response:', data);
+                logsData = data.data || [];
+                
+                console.log('Audit logs loaded from API:', logsData);
+                console.log('logsData length:', logsData.length);
+                return logsData;
+            } catch (error) {
+                console.error('Error loading audit logs:', error);
+                return [];
+            }
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function getLogTypeColor(type) {
+            switch (type) {
+                case 'create':
+                    return 'bg-green-100 text-green-800';
+                case 'update':
+                    return 'bg-blue-100 text-blue-800';
+                case 'delete':
+                    return 'bg-red-100 text-red-800';
+                case 'login':
+                    return 'bg-purple-100 text-purple-800';
+                case 'export':
+                    return 'bg-orange-100 text-orange-800';
+                case 'filter':
+                    return 'bg-blue-100 text-blue-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        function displayLogs(logs) {
+            const container = document.getElementById('logsList');
+            
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="text-gray-500">Nenhum log encontrado</div>';
+                return;
+            }
+            
+            const html = logs.map((log, index) => `
+                <div class="border-b border-gray-200 py-4">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-gray-600 text-xs font-semibold">${log.userName ? log.userName.split(' ').map(n => n[0]).join('').substring(0, 2) : 'NA'}</span>
+                                </div>
+                                <div>
+                                    <div class="font-semibold">${log.userName || 'Usuário não encontrado'}</div>
+                                    <div class="text-xs text-gray-500">${formatDate(log.createdAt)}</div>
+                                </div>
+                            </div>
+                            <div class="ml-11">
+                                <div class="text-sm font-medium">${log.action}</div>
+                                <div class="text-sm text-gray-600">${log.details}</div>
+                                <div class="mt-2">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full ${getLogTypeColor(log.type)}">
+                                        ${log.type}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        async function initTest() {
+            console.log('Iniciando teste de logs de auditoria...');
+            
+            // Verificar status da API
+            const apiData = await checkAPIStatus();
+            console.log('API data:', apiData);
+            
+            // Carregar logs
+            const logs = await loadAuditLogs();
+            console.log('Logs loaded:', logs);
+            
+            // Exibir logs
+            displayLogs(logs);
+            
+            // Exibir dados da API
+            document.getElementById('apiData').innerHTML = `
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">${JSON.stringify(apiData, null, 2)}</pre>
+            `;
+            
+            console.log('Teste de logs de auditoria concluído');
+        }
+        
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', initTest);
+    </script>
+</body>
+</html> 

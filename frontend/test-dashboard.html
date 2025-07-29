@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Teste - Dashboard</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Total de Softwares</p>
+                        <p class="text-3xl font-bold text-gray-900" id="totalSoftwares">-</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-600 rounded flex items-center justify-center">
+                        <i class="fas fa-server text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Cloud Services</p>
+                        <p class="text-3xl font-bold text-gray-900" id="cloudServices">-</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-600 rounded flex items-center justify-center">
+                        <i class="fas fa-cloud text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Com MFA</p>
+                        <p class="text-3xl font-bold text-gray-900" id="mfaEnabled">-</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-500 rounded flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Usuários Ativos</p>
+                        <p class="text-3xl font-bold text-gray-900" id="activeUsers">-</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-600 rounded flex items-center justify-center">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">Distribuição por Hosting</h3>
+                        <p class="text-sm text-gray-600 mt-1">Análise de infraestrutura</p>
+                    </div>
+                </div>
+                <div class="relative h-80">
+                    <canvas id="hostingChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">Status de Segurança</h3>
+                        <p class="text-sm text-gray-600 mt-1">Métricas de conformidade</p>
+                    </div>
+                </div>
+                <div class="relative h-80">
+                    <canvas id="securityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Dados da API</h3>
+            <div id="apiData" class="text-sm text-gray-600">
+                Carregando...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+        var hostingChart, securityChart;
+        
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares/stats`);
+                const stats = await response.json();
+                
+                document.getElementById('totalSoftwares').textContent = stats.totalSoftwares || 0;
+                document.getElementById('cloudServices').textContent = stats.cloudServices || 0;
+                document.getElementById('mfaEnabled').textContent = stats.mfaEnabled || 0;
+                document.getElementById('activeUsers').textContent = stats.security?.mfaEnabled || 0;
+                
+                document.getElementById('apiData').innerHTML = `
+                    <pre class="bg-gray-100 p-4 rounded overflow-auto">${JSON.stringify(stats, null, 2)}</pre>
+                `;
+                
+                return stats;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+                document.getElementById('apiData').innerHTML = `<div class="text-red-600">Erro: ${error.message}</div>`;
+                return null;
+            }
+        }
+        
+        async function loadSoftwares() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares`);
+                const data = await response.json();
+                return data.data || [];
+            } catch (error) {
+                console.error('Erro ao carregar softwares:', error);
+                return [];
+            }
+        }
+        
+        function initHostingChart(softwares) {
+            var ctx = document.getElementById('hostingChart');
+            if (!ctx) {
+                console.error('Canvas hostingChart não encontrado');
+                return;
+            }
+
+            var hostingData = {};
+            softwares.forEach(function(item) {
+                hostingData[item.hosting] = (hostingData[item.hosting] || 0) + 1;
+            });
+
+            if (hostingChart) {
+                hostingChart.destroy();
+            }
+
+            hostingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(hostingData),
+                    datasets: [{
+                        data: Object.values(hostingData),
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initSecurityChart(softwares) {
+            var ctx = document.getElementById('securityChart');
+            if (!ctx) {
+                console.error('Canvas securityChart não encontrado');
+                return;
+            }
+
+            var mfaEnabled = softwares.filter(function(item) { return item.mfa === 'Habilitado'; }).length;
+            var ssoIntegrated = softwares.filter(function(item) { return item.sso === 'Integrado'; }).length;
+            var logsActive = softwares.filter(function(item) { return item.logs === 'LogsAcesso' || item.logs === 'LogsSistema'; }).length;
+            var bloqueioEnabled = softwares.filter(function(item) { return item.bloqueio === 'Sim'; }).length;
+
+            if (securityChart) {
+                securityChart.destroy();
+            }
+
+            securityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['MFA Habilitado', 'SSO Integrado', 'Logs Ativos', 'Bloqueio Regional'],
+                    datasets: [{
+                        label: 'Quantidade',
+                        data: [mfaEnabled, ssoIntegrated, logsActive, bloqueioEnabled],
+                        backgroundColor: [
+                            '#10B981',
+                            '#3B82F6',
+                            '#F59E0B',
+                            '#EF4444'
+                        ],
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function initTest() {
+            console.log('Iniciando teste do dashboard...');
+            
+            // Carregar estatísticas
+            const stats = await loadDashboardStats();
+            console.log('Estatísticas carregadas:', stats);
+            
+            // Carregar softwares para gráficos
+            const softwares = await loadSoftwares();
+            console.log('Softwares carregados:', softwares.length);
+            
+            // Inicializar gráficos
+            initHostingChart(softwares);
+            initSecurityChart(softwares);
+            
+            console.log('Teste do dashboard concluído');
+        }
+        
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', initTest);
+    </script>
+</body>
+</html> 

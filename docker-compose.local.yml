@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: softwarehub
+      POSTGRES_USER: softwarehub_user
+      POSTGRES_PASSWORD: softwarehub123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"  # Mudando para 5433 para evitar conflito
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U softwarehub_user -d softwarehub"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: always
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://softwarehub_user:softwarehub123@db:5432/softwarehub
+      JWT_SECRET: dev_jwt_secret_key_123
+      PORT: 3002  # Mudando para 3002 para evitar conflito
+      CORS_ORIGIN: http://localhost:8088
+    ports:
+      - "3002:3002"  # Mudando para 3002
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: always
+    ports:
+      - "8088:80"  # Mudando para 8088 para evitar conflito
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data: 

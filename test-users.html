@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Usuários</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Teste - Usuários</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Status da API</h2>
+            <div id="apiStatus" class="text-sm"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Usuários Cadastrados</h2>
+            <div id="usersList" class="text-sm">
+                Carregando...
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Dados da API</h2>
+            <div id="apiData" class="text-sm text-gray-600">
+                Carregando...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+        var usersData = [];
+        
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`);
+                const data = await response.json();
+                
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="text-green-600 font-semibold">✅ API funcionando</div>
+                    <div>Total de usuários: ${data.users ? data.users.length : 0}</div>
+                    <div>Status: ${response.status}</div>
+                `;
+                
+                return data;
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="text-red-600 font-semibold">❌ Erro na API</div>
+                    <div>${error.message}</div>
+                `;
+                return null;
+            }
+        }
+        
+        async function loadUsers() {
+            try {
+                console.log('loadUsers called');
+                const response = await fetch(`${API_BASE_URL}/users`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Raw API response:', data);
+                usersData = data.users || [];
+                
+                console.log('Users loaded from API:', usersData);
+                console.log('usersData length:', usersData.length);
+                return usersData;
+            } catch (error) {
+                console.error('Error loading users:', error);
+                return [];
+            }
+        }
+        
+        function displayUsers(users) {
+            const container = document.getElementById('usersList');
+            
+            if (users.length === 0) {
+                container.innerHTML = '<div class="text-gray-500">Nenhum usuário encontrado</div>';
+                return;
+            }
+            
+            const html = users.map((user, index) => `
+                <div class="border-b border-gray-200 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                                <span class="text-white text-sm font-bold">${user.avatar}</span>
+                            </div>
+                            <div>
+                                <div class="font-semibold">${user.name}</div>
+                                <div class="text-gray-600">${user.email}</div>
+                                <div class="text-xs text-gray-500">ID: ${user.id}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="px-3 py-1 text-xs font-semibold ${user.status === 'Ativo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} rounded-full">
+                                ${user.status}
+                            </span>
+                            <span class="px-3 py-1 text-xs font-semibold ${user.role === 'Admin' ? 'bg-purple-100 text-purple-800' : user.role === 'Editor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'} rounded-full">
+                                ${user.role}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        async function initTest() {
+            console.log('Iniciando teste de usuários...');
+            
+            // Verificar status da API
+            const apiData = await checkAPIStatus();
+            console.log('API data:', apiData);
+            
+            // Carregar usuários
+            const users = await loadUsers();
+            console.log('Users loaded:', users);
+            
+            // Exibir usuários
+            displayUsers(users);
+            
+            // Exibir dados da API
+            document.getElementById('apiData').innerHTML = `
+                <pre class="bg-gray-100 p-4 rounded overflow-auto">${JSON.stringify(apiData, null, 2)}</pre>
+            `;
+            
+            console.log('Teste de usuários concluído');
+        }
+        
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', initTest);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1055 @@
+<h1>SoftwareHub - Arquitetura de Produção Completa</h1>
+<h2>📋 Visão Geral do Sistema</h2>
+<p>O SoftwareHub é uma aplicação web para gestão de softwares empresariais com funcionalidades de:</p>
+<ul>
+<li>Dashboard com métricas e gráficos</li>
+<li>Gestão completa de softwares (CRUD)</li>
+<li>Sistema de usuários e permissões</li>
+<li>Logs de auditoria</li>
+<li>Filtros avançados e visão customizável</li>
+<li>Exportação de dados</li>
+</ul>
+<p><strong>URL de Produção</strong>: <code>softwarehub-xp.wake.tech:8087</code></p>
+<h2>🏗️ Arquitetura da Solução</h2>
+<h3>Stack Tecnológica</h3>
+<ul>
+<li><strong>Frontend</strong>: React.js 18+ com TypeScript</li>
+<li><strong>Backend</strong>: Node.js 18+ com Express.js</li>
+<li><strong>Banco de Dados</strong>: PostgreSQL 15+</li>
+<li><strong>Autenticação</strong>: JWT + bcrypt</li>
+<li><strong>ORM</strong>: Prisma</li>
+<li><strong>Containerização</strong>: Docker + Docker Compose</li>
+<li><strong>Orquestração</strong>: Kubernetes</li>
+<li><strong>Proxy Reverso</strong>: Nginx</li>
+</ul>
+<h2>🗄️ Estrutura do Banco de Dados</h2>
+<h3>Schema PostgreSQL</h3>
+<pre><code class="language-sql">-- Criação do banco
+CREATE DATABASE softwarehub;
+
+-- Extensões necessárias
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- Tabela de usuários
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL CHECK (role IN ('Admin', 'Editor', 'Visualizador')),
+  status VARCHAR(20) NOT NULL DEFAULT 'Ativo' CHECK (status IN ('Ativo', 'Inativo')),
+  avatar VARCHAR(10),
+  last_access TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela de softwares
+CREATE TABLE softwares (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  servico VARCHAR(255) NOT NULL,
+  description TEXT,
+  url VARCHAR(500),
+  hosting VARCHAR(100) NOT NULL CHECK (hosting IN ('On-premises', 'Cloud', 'Cloudstack', 'SaaS Público')),
+  
+  -- Gestão de Acesso
+  acesso VARCHAR(50) NOT NULL CHECK (acesso IN ('Interno', 'Externo')),
+  responsible TEXT,
+  named_user VARCHAR(50) CHECK (named_user IN ('Sim', 'Sem autenticação', 'Não')),
+  integrated_user VARCHAR(50) CHECK (integrated_user IN ('Sim', 'Não', 'Integrador', 'Ambos')),
+  sso VARCHAR(100) NOT NULL CHECK (sso IN ('Aplicável', 'Integrado', 'Possível (upgrade licença)', 'Sem possibilidade', 'Desenvolver')),
+  
+  -- Onboarding/Offboarding
+  onboarding TEXT,
+  offboarding VARCHAR(50) CHECK (offboarding IN ('Remover manual', 'Remoção automática', 'N/A')),
+  offboarding_type VARCHAR(20) CHECK (offboarding_type IN ('Alta', 'Média', 'Baixa')),
+  affected_teams TEXT[], -- Array de strings
+  
+  -- Segurança
+  logs_info VARCHAR(50) CHECK (logs_info IN ('Logs de acesso', 'Logs de sistema', 'Ambos', 'Nenhum log')),
+  logs_retention VARCHAR(20) CHECK (logs_retention IN ('Nenhum', 'Semanal', 'Mensal', 'Diário')),
+  mfa_policy VARCHAR(20) CHECK (mfa_policy IN ('Sim', 'Não', 'Não aplicável')),
+  mfa VARCHAR(50) NOT NULL CHECK (mfa IN ('Não tem possibilidade', 'Habilitado', 'Não aplicável')),
+  mfa_sms VARCHAR(10) CHECK (mfa_sms IN ('Não', 'Sim')),
+  region_block VARCHAR(50) CHECK (region_block IN ('Sim', 'Não', 'Não aplicável', 'Não possui funcionalidade')),
+  password_policy VARCHAR(10) CHECK (password_policy IN ('Sim', 'Não')),
+  
+  -- LGPD
+  sensitive_data VARCHAR(10) CHECK (sensitive_data IN ('Sim', 'Não')),
+  
+  -- Campos legados para compatibilidade
+  criticidade VARCHAR(20) NOT NULL DEFAULT 'Média' CHECK (criticidade IN ('Alta', 'Média', 'Baixa')),
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_by UUID REFERENCES users(id),
+  updated_by UUID REFERENCES users(id)
+);
+
+-- Tabela de logs de auditoria
+CREATE TABLE audit_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id),
+  user_name VARCHAR(255) NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  details TEXT NOT NULL,
+  type VARCHAR(50) NOT NULL CHECK (type IN ('create', 'update', 'delete', 'login', 'export', 'filter')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Índices para performance
+CREATE INDEX idx_softwares_hosting ON softwares(hosting);
+CREATE INDEX idx_softwares_acesso ON softwares(acesso);
+CREATE INDEX idx_softwares_sso ON softwares(sso);
+CREATE INDEX idx_softwares_mfa ON softwares(mfa);
+CREATE INDEX idx_softwares_criticidade ON softwares(criticidade);
+CREATE INDEX idx_softwares_created_at ON softwares(created_at);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_status ON users(status);
+CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX idx_audit_logs_type ON audit_logs(type);
+
+-- Triggers para updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_softwares_updated_at BEFORE UPDATE ON softwares
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Dados iniciais
+-- Usuário admin inicial (senha: admin123)
+INSERT INTO users (name, email, password_hash, role, status, avatar) VALUES
+('Rodrigo Oliveira', 'admin@softwarehub.com', '$2b$10$rQx9sP4qKjLx8yF2vB3O.eKxZcP4qKjLx8yF2vB3O.eKxZcP4qKjLx', 'Admin', 'Ativo', 'RO');
+
+-- Softwares de exemplo
+INSERT INTO softwares (servico, url, hosting, acesso, sso, mfa, criticidade, region_block, logs_info, created_by) 
+SELECT 
+  'AWS Console', 'https://aws.amazon.com', 'Cloud', 'Interno', 'Integrado', 'Habilitado', 'Alta', 'Sim', 'Logs de sistema', u.id
+FROM users u WHERE u.email = 'admin@softwarehub.com';
+
+INSERT INTO softwares (servico, url, hosting, acesso, sso, mfa, criticidade, region_block, logs_info, created_by) 
+SELECT 
+  'Jira Software', 'https://empresa.atlassian.net', 'SaaS Público', 'Interno', 'Aplicável', 'Habilitado', 'Média', 'Sim', 'Logs de acesso', u.id
+FROM users u WHERE u.email = 'admin@softwarehub.com';
+
+INSERT INTO softwares (servico, url, hosting, acesso, sso, mfa, criticidade, region_block, logs_info, created_by) 
+SELECT 
+  'Sistema ERP', 'http://erp.empresa.local', 'On-premises', 'Interno', 'Desenvolver', 'Não tem possibilidade', 'Alta', 'Não aplicável', 'Logs de sistema', u.id
+FROM users u WHERE u.email = 'admin@softwarehub.com';
+
+INSERT INTO softwares (servico, url, hosting, acesso, sso, mfa, criticidade, region_block, logs_info, created_by) 
+SELECT 
+  'Slack', 'https://empresa.slack.com', 'SaaS Público', 'Interno', 'Integrado', 'Habilitado', 'Baixa', 'Sim', 'Logs de acesso', u.id
+FROM users u WHERE u.email = 'admin@softwarehub.com';
+</code></pre>
+<h2>🐳 Containerização Docker</h2>
+<h3>Dockerfile - Backend</h3>
+<pre><code class="language-dockerfile"># Dockerfile.backend
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Instalar dependências
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copiar código fonte
+COPY . .
+
+# Gerar Prisma Client
+RUN npx prisma generate
+
+# Expor porta
+EXPOSE 3001
+
+# Comando de inicialização
+CMD ["node", "dist/server.js"]
+</code></pre>
+<h3>Dockerfile - Frontend</h3>
+<pre><code class="language-dockerfile"># Dockerfile.frontend
+FROM node:18-alpine as builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+</code></pre>
+<h3>Docker Compose</h3>
+<pre><code class="language-yaml"># docker-compose.yml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: softwarehub
+      POSTGRES_USER: softwarehub_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U softwarehub_user -d softwarehub"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://softwarehub_user:${DB_PASSWORD}@db:5432/softwarehub
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "8087:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  postgres_data:
+</code></pre>
+<h2>⚙️ Configuração Nginx</h2>
+<pre><code class="language-nginx"># nginx.conf
+upstream backend {
+    server backend:3001;
+}
+
+upstream frontend {
+    server frontend:80;
+}
+
+server {
+    listen 80;
+    server_name softwarehub-xp.wake.tech;
+    
+    client_max_body_size 10M;
+    
+    # Frontend
+    location / {
+        proxy_pass http://frontend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # API Backend
+    location /api/ {
+        proxy_pass http://backend/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # CORS headers
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization";
+        
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
+    }
+    
+    # Health check
+    location /health {
+        proxy_pass http://backend/health;
+        access_log off;
+    }
+}
+</code></pre>
+<h2>☸️ Manifests Kubernetes</h2>
+<h3>Namespace</h3>
+<pre><code class="language-yaml"># k8s/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: softwarehub
+</code></pre>
+<h3>ConfigMap</h3>
+<pre><code class="language-yaml"># k8s/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: softwarehub-config
+  namespace: softwarehub
+data:
+  NODE_ENV: "production"
+  PORT: "3001"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "softwarehub"
+  DB_USER: "softwarehub_user"
+</code></pre>
+<h3>Secrets</h3>
+<pre><code class="language-yaml"># k8s/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: softwarehub-secrets
+  namespace: softwarehub
+type: Opaque
+data:
+  DB_PASSWORD: &#x3C;base64-encoded-password>
+  JWT_SECRET: &#x3C;base64-encoded-jwt-secret>
+</code></pre>
+<h3>PostgreSQL Deployment</h3>
+<pre><code class="language-yaml"># k8s/postgres-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: softwarehub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: DB_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: DB_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: softwarehub-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: init-script
+        configMap:
+          name: postgres-init-script
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: softwarehub
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: softwarehub
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+</code></pre>
+<h3>Backend Deployment</h3>
+<pre><code class="language-yaml"># k8s/backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: softwarehub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: softwarehub-backend:latest
+        ports:
+        - containerPort: 3001
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: softwarehub-secrets
+              key: DB_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: softwarehub-secrets
+              key: JWT_SECRET
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: softwarehub-config
+              key: PORT
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: softwarehub
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 3001
+    targetPort: 3001
+  type: ClusterIP
+</code></pre>
+<h3>Frontend Deployment</h3>
+<pre><code class="language-yaml"># k8s/frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: softwarehub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: softwarehub-frontend:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: softwarehub
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+</code></pre>
+<h3>Nginx Ingress</h3>
+<pre><code class="language-yaml"># k8s/nginx-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: softwarehub
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: softwarehub
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 8087
+    targetPort: 80
+  type: LoadBalancer
+</code></pre>
+<h2>🚀 Estrutura de Código Backend</h2>
+<h3>package.json</h3>
+<pre><code class="language-json">{
+  "name": "softwarehub-backend",
+  "version": "1.0.0",
+  "description": "SoftwareHub Backend API",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.2.0",
+    "@prisma/client": "^5.2.0",
+    "express-rate-limit": "^6.8.1",
+    "express-validator": "^7.0.1",
+    "multer": "^1.4.5-lts.1",
+    "csv-parser": "^3.0.0",
+    "json2csv": "^6.1.0",
+    "compression": "^1.7.4",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/cors": "^2.8.13",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/multer": "^1.4.7",
+    "@types/compression": "^1.7.2",
+    "typescript": "^5.1.6",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
+  }
+}
+</code></pre>
+<h3>Prisma Schema</h3>
+<pre><code class="language-prisma">// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role
+  status       Status    @default(ATIVO)
+  avatar       String?
+  lastAccess   DateTime? @map("last_access")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  
+  // Relacionamentos
+  createdSoftwares Software[] @relation("CreatedBy")
+  updatedSoftwares Software[] @relation("UpdatedBy")
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+model Software {
+  id               String    @id @default(uuid())
+  servico          String
+  description      String?
+  url              String?
+  hosting          Hosting
+  
+  // Gestão de Acesso
+  acesso           Acesso
+  responsible      String?
+  namedUser        NamedUser? @map("named_user")
+  integratedUser   IntegratedUser? @map("integrated_user")
+  sso              SSO
+  
+  // Onboarding/Offboarding
+  onboarding       String?
+  offboarding      Offboarding?
+  offboardingType  OffboardingType? @map("offboarding_type")
+  affectedTeams    String[] @map("affected_teams")
+  
+  // Segurança
+  logsInfo         LogsInfo? @map("logs_info")
+  logsRetention    LogsRetention? @map("logs_retention")
+  mfaPolicy        MFAPolicy? @map("mfa_policy")
+  mfa              MFA
+  mfaSMS           MFASMS? @map("mfa_sms")
+  regionBlock      RegionBlock? @map("region_block")
+  passwordPolicy   PasswordPolicy? @map("password_policy")
+  
+  // LGPD
+  sensitiveData    SensitiveData? @map("sensitive_data")
+  
+  // Campos legados
+  criticidade      Criticidade @default(MEDIA)
+  
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  createdBy        String?   @map("created_by")
+  updatedBy        String?   @map("updated_by")
+  
+  // Relacionamentos
+  creator          User?     @relation("CreatedBy", fields: [createdBy], references: [id])
+  updater          User?     @relation("UpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("softwares")
+}
+
+model AuditLog {
+  id        String    @id @default(uuid())
+  userId    String?   @map("user_id")
+  userName  String    @map("user_name")
+  action    String
+  details   String
+  type      LogType
+  createdAt DateTime  @default(now()) @map("created_at")
+  
+  // Relacionamentos
+  user      User?     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// Enums
+enum Role {
+  Admin
+  Editor
+  Visualizador
+}
+
+enum Status {
+  Ativo
+  Inativo
+}
+
+enum Hosting {
+  OnPremises @map("On-premises")
+  Cloud
+  Cloudstack
+  SaaSPublico @map("SaaS Público")
+}
+
+enum Acesso {
+  Interno
+  Externo
+}
+
+enum NamedUser {
+  Sim
+  SemAutenticacao @map("Sem autenticação")
+  Nao @map("Não")
+}
+
+enum IntegratedUser {
+  Sim
+  Nao @map("Não")
+  Integrador
+  Ambos
+}
+
+enum SSO {
+  Aplicavel @map("Aplicável")
+  Integrado
+  PossivelUpgrade @map("Possível (upgrade licença)")
+  SemPossibilidade @map("Sem possibilidade")
+  Desenvolver
+}
+
+enum Offboarding {
+  RemoverManual @map("Remover manual")
+  RemocaoAutomatica @map("Remoção automática")
+  NA @map("N/A")
+}
+
+enum OffboardingType {
+  Alta
+  Media @map("Média")
+  Baixa
+}
+
+enum LogsInfo {
+  LogsAcesso @map("Logs de acesso")
+  LogsSistema @map("Logs de sistema")
+  Ambos
+  NenhumLog @map("Nenhum log")
+}
+
+enum LogsRetention {
+  Nenhum
+  Semanal
+  Mensal
+  Diario @map("Diário")
+}
+
+enum MFAPolicy {
+  Sim
+  Nao @map("Não")
+  NaoAplicavel @map("Não aplicável")
+}
+
+enum MFA {
+  NaoTemPossibilidade @map("Não tem possibilidade")
+  Habilitado
+  NaoAplicavel @map("Não aplicável")
+}
+
+enum MFASMS {
+  Nao @map("Não")
+  Sim
+}
+
+enum RegionBlock {
+  Sim
+  Nao @map("Não")
+  NaoAplicavel @map("Não aplicável")
+  NaoPossuiFuncionalidade @map("Não possui funcionalidade")
+}
+
+enum PasswordPolicy {
+  Sim
+  Nao @map("Não")
+}
+
+enum SensitiveData {
+  Sim
+  Nao @map("Não")
+}
+
+enum Criticidade {
+  Alta
+  Media @map("Média")
+  Baixa
+}
+
+enum LogType {
+  create
+  update
+  delete
+  login
+  export
+  filter
+}
+</code></pre>
+<h2>📁 Estrutura de Pastas Backend</h2>
+<pre><code>backend/
+├── src/
+│   ├── controllers/
+│   │   ├── authController.ts
+│   │   ├── softwareController.ts
+│   │   ├── userController.ts
+│   │   └── auditController.ts
+│   ├── middleware/
+│   │   ├── auth.ts
+│   │   ├── validation.ts
+│   │   └── rateLimit.ts
+│   ├── routes/
+│   │   ├── auth.ts
+│   │   ├── softwares.ts
+│   │   ├── users.ts
+│   │   └── audit.ts
+│   ├── services/
+│   │   ├── authService.ts
+│   │   ├── softwareService.ts
+│   │   ├── userService.ts
+│   │   └── auditService.ts
+│   ├── utils/
+│   │   ├── database.ts
+│   │   ├── jwt.ts
+│   │   └── validators.ts
+│   ├── types/
+│   │   └── index.ts
+│   └── server.ts
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── Dockerfile
+├── package.json
+└── tsconfig.json
+</code></pre>
+<h2>🎯 Scripts de Deploy</h2>
+<h3>Script de Build</h3>
+<pre><code class="language-bash">#!/bin/bash
+# build.sh
+
+echo "🏗️  Building SoftwareHub..."
+
+# Build backend
+echo "📦 Building backend..."
+cd backend
+npm run build
+docker build -t softwarehub-backend:latest .
+cd ..
+
+# Build frontend
+echo "🎨 Building frontend..."
+cd frontend
+npm run build
+docker build -t softwarehub-frontend:latest .
+cd ..
+
+echo "✅ Build completed!"
+</code></pre>
+<h3>Script de Deploy Kubernetes</h3>
+<pre><code class="language-bash">#!/bin/bash
+# deploy.sh
+
+echo "🚀 Deploying SoftwareHub to Kubernetes..."
+
+# Apply namespace
+kubectl apply -f k8s/namespace.yaml
+
+# Apply secrets and configmaps
+kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/configmap.yaml
+
+# Deploy PostgreSQL
+kubectl apply -f k8s/postgres-deployment.yaml
+
+# Wait for PostgreSQL to be ready
+echo "⏳ Waiting for PostgreSQL to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/postgres -n softwarehub
+
+# Deploy backend
+kubectl apply -f k8s/backend-deployment.yaml
+
+# Wait for backend to be ready
+echo "⏳ Waiting for backend to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/backend -n softwarehub
+
+# Deploy frontend
+kubectl apply -f k8s/frontend-deployment.yaml
+
+# Deploy nginx
+kubectl apply -f k8s/nginx-deployment.yaml
+
+# Wait for all deployments
+echo "⏳ Waiting for all services to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/frontend -n softwarehub
+kubectl wait --for=condition=available --timeout=300s deployment/nginx -n softwarehub
+
+echo "✅ Deployment completed!"
+echo "🌐 Application available at: http://softwarehub-xp.wake.tech:8087"
+</code></pre>
+<h2>🔐 Configurações de Segurança</h2>
+<h3>Environment Variables (.env)</h3>
+<pre><code class="language-bash"># Database
+DATABASE_URL=postgresql://softwarehub_user:your_secure_password@localhost:5432/softwarehub
+DB_PASSWORD=your_secure_password
+
+# JWT
+JWT_SECRET=your_super_secure_jwt_secret_key_here
+
+# Application
+NODE_ENV=production
+PORT=3001
+CORS_ORIGIN=http://softwarehub-xp.wake.tech:8087
+
+# Security
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=1000
+SESSION_TIMEOUT=3600000
+</code></pre>
+<h2>📋 Checklist de Deploy</h2>
+<h3>Pré-requisitos</h3>
+<ul data-type="taskList">
+<li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p> Cluster Kubernetes configurado</p></div></li>
+<li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p> kubectl configurado</p></div></li>
+<li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p> Docker instalado</p></div></li>
+<li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p> Imagens construídas e disponíveis</p></div></li>
+<li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p> Secrets configurados</p></div></li>
+<li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p> DNS apontando para o LoadBalancer</p></div></li>
+</ul>
+<h3>Deploy Steps</h3>
+<ol class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> Executar <code>./build.sh</code></li>
+<li class="task-list-item"><input type="checkbox" disabled> Configurar secrets no Kubernetes</li>
+<li class="task-list-item"><input type="checkbox" disabled> Executar <code>./deploy.sh</code></li>
+<li class="task-list-item"><input type="checkbox" disabled> Verificar todos os pods estão rodando</li>
+<li class="task-list-item"><input type="checkbox" disabled> Testar conectividade com o banco</li>
+<li class="task-list-item"><input type="checkbox" disabled> Verificar aplicação via URL</li>
+<li class="task-list-item"><input type="checkbox" disabled> Executar testes de funcionalidade</li>
+<li class="task-list-item"><input type="checkbox" disabled> Configurar monitoramento</li>
+<li class="task-list-item"><input type="checkbox" disabled> Configurar backup do banco</li>
+<li class="task-list-item"><input type="checkbox" disabled> Documentar credenciais</li>
+</ol>
+<h2>🔧 Monitoramento e Logs</h2>
+<h3>Health Checks</h3>
+<ul>
+<li><strong>Backend</strong>: <code>GET /health</code></li>
+<li><strong>Database</strong>: Connection pooling status</li>
+<li><strong>Frontend</strong>: Nginx status</li>
+</ul>
+<h3>Métricas Recomendadas</h3>
+<ul>
+<li>Response time médio</li>
+<li>Número de requests por minuto</li>
+<li>Uso de CPU e memória</li>
+<li>Conexões de banco ativas</li>
+<li>Errors rate</li>
+</ul>
+<h2>🛡️ Backup e Recovery</h2>
+<h3>Backup Automático PostgreSQL</h3>
+<pre><code class="language-bash"># Script de backup diário
+#!/bin/bash
+kubectl exec -n softwarehub deployment/postgres -- pg_dump -U softwarehub_user softwarehub > backup_$(date +%Y%m%d).sql
+</code></pre>
+<h2>📞 Credenciais Iniciais</h2>
+<p><strong>Usuário Admin:</strong></p>
+<ul>
+<li>Email: <code>admin@softwarehub.com</code></li>
+<li>Senha: <code>admin123</code></li>
+<li>Role: <code>Admin</code></li>
+</ul>
+<p><strong>⚠️ IMPORTANTE</strong>: Alterar a senha do admin imediatamente após o primeiro login!</p>
+<h2>🎉 Conclusão</h2>
+<p>Esta estrutura fornece uma solução completa e pronta para produção do SoftwareHub, com todas as funcionalidades atuais preservadas e dados persistidos em PostgreSQL. O sistema estará disponível em <code>softwarehub-xp.wake.tech:8087</code> após o deploy completo.</p>

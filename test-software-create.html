@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Criação de Software</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Teste - Criação de Software</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Dados do Software</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Serviço/Plataforma *</label>
+                    <input type="text" id="softwareName" class="w-full border border-gray-300 rounded-xl px-4 py-3" value="Teste Software">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Hosting *</label>
+                    <select id="softwareHosting" class="w-full border border-gray-300 rounded-xl px-4 py-3">
+                        <option value="OnPremises">On-premises</option>
+                        <option value="Cloud">Cloud</option>
+                        <option value="Cloudstack">Cloudstack</option>
+                        <option value="SaaSPublico">SaaS Público</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="testCreateSoftware()" class="mt-4 bg-blue-600 text-white px-6 py-3 rounded font-medium">
+                Testar Criação
+            </button>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Resultado</h2>
+            <div id="result" class="text-sm">
+                Clique em "Testar Criação" para ver o resultado...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+        
+        async function testCreateSoftware() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testando criação...';
+            
+            try {
+                const softwareData = {
+                    servico: document.getElementById('softwareName').value,
+                    hosting: document.getElementById('softwareHosting').value,
+                    acesso: 'Interno',
+                    sso: 'Aplicavel',
+                    mfa: 'NaoTemPossibilidade',
+                    criticidade: 'Media'
+                };
+                
+                console.log('Dados a serem enviados:', softwareData);
+                console.log('JSON:', JSON.stringify(softwareData));
+                
+                const response = await fetch(`${API_BASE_URL}/softwares`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(softwareData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    resultDiv.innerHTML = `
+                        <div class="text-red-600 font-semibold">❌ Erro na criação</div>
+                        <div class="text-sm">Status: ${response.status}</div>
+                        <div class="text-sm">Erro: ${errorText}</div>
+                    `;
+                    return;
+                }
+                
+                const result = await response.json();
+                console.log('Software criado:', result);
+                
+                resultDiv.innerHTML = `
+                    <div class="text-green-600 font-semibold">✅ Software criado com sucesso!</div>
+                    <div class="text-sm">ID: ${result.id}</div>
+                    <div class="text-sm">Nome: ${result.servico}</div>
+                    <div class="text-sm">Hosting: ${result.hosting}</div>
+                    <pre class="mt-4 bg-gray-100 p-4 rounded text-xs overflow-auto">${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                console.error('Erro no teste:', error);
+                resultDiv.innerHTML = `
+                    <div class="text-red-600 font-semibold">❌ Erro no teste</div>
+                    <div class="text-sm">${error.message}</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Botões CRUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Teste - Botões CRUD</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Softwares Cadastrados</h2>
+            <div id="softwareList" class="space-y-4">
+                <!-- Softwares serão listados aqui -->
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Logs de Ações</h2>
+            <div id="actionLogs" class="text-sm text-gray-600">
+                <div>Nenhuma ação registrada ainda...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+        var sampleData = [];
+        
+        function addLog(message) {
+            const logsDiv = document.getElementById('actionLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'border-b border-gray-200 py-2';
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
+            logsDiv.insertBefore(logEntry, logsDiv.firstChild);
+        }
+        
+        async function loadSoftwares() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/softwares`);
+                const data = await response.json();
+                sampleData = data.data || [];
+                addLog(`Carregados ${sampleData.length} softwares`);
+                return sampleData;
+            } catch (error) {
+                console.error('Error loading softwares:', error);
+                addLog(`Erro ao carregar softwares: ${error.message}`);
+                return [];
+            }
+        }
+        
+        function editSoftware(id) {
+            addLog(`Tentando editar software com ID: ${id}`);
+            console.log('editSoftware called with id:', id);
+            
+            var software = sampleData.find(function(item) { return item.id == id; });
+            console.log('Found software:', software);
+            
+            if (software) {
+                addLog(`✅ Software encontrado: ${software.servico}`);
+                addLog(`Abrindo modal de edição para: ${software.servico}`);
+                // Simular abertura do modal
+                alert(`Modal de edição seria aberto para: ${software.servico}`);
+            } else {
+                addLog(`❌ Software não encontrado com ID: ${id}`);
+                console.error('Software not found with id:', id);
+                alert('Software não encontrado!');
+            }
+        }
+        
+        async function deleteSoftware(id) {
+            addLog(`Tentando excluir software com ID: ${id}`);
+            console.log('deleteSoftware called with id:', id);
+            
+            var software = sampleData.find(function(item) { return item.id == id; });
+            if (software) {
+                addLog(`✅ Software encontrado: ${software.servico}`);
+            } else {
+                addLog(`❌ Software não encontrado com ID: ${id}`);
+                alert('Software não encontrado!');
+                return;
+            }
+            
+            if (confirm(`Tem certeza que deseja excluir o software "${software.servico}"?`)) {
+                addLog(`Usuário confirmou exclusão de: ${software.servico}`);
+                console.log('User confirmed deletion');
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/softwares/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    addLog(`✅ Software "${software.servico}" excluído com sucesso!`);
+                    console.log('Software deleted from API');
+                    
+                    // Recarregar lista
+                    await loadSoftwares();
+                    displaySoftwares();
+                    
+                } catch (error) {
+                    addLog(`❌ Erro ao excluir software: ${error.message}`);
+                    console.error('Error deleting software:', error);
+                    alert('Erro ao excluir software. Verifique o console para mais detalhes.');
+                }
+            } else {
+                addLog(`Usuário cancelou exclusão de: ${software.servico}`);
+                console.log('User cancelled deletion');
+            }
+        }
+        
+        function displaySoftwares() {
+            const container = document.getElementById('softwareList');
+            
+            if (sampleData.length === 0) {
+                container.innerHTML = '<div class="text-gray-500">Nenhum software encontrado</div>';
+                return;
+            }
+            
+            const html = sampleData.map((software, index) => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center mr-4">
+                                    <i class="fas fa-server text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-semibold text-gray-900">${software.servico}</div>
+                                    <div class="text-sm text-gray-600">${software.description || 'Sem descrição'}</div>
+                                    <div class="text-xs text-gray-500">ID: ${software.id}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editSoftware('${software.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteSoftware('${software.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        async function initTest() {
+            addLog('Iniciando teste dos botões CRUD...');
+            await loadSoftwares();
+            displaySoftwares();
+            addLog('Teste inicializado. Clique nos botões para testar.');
+        }
+        
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', initTest);
+    </script>
+</body>
+</html> 
