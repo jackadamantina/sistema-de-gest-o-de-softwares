@@ -1,10 +1,13 @@
 FROM node:18-alpine
 
+# Install OpenSSL and other dependencies
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (including devDependencies for TypeScript compilation)
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -12,8 +15,14 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
+# Build TypeScript
+RUN npm run build
+
+# Remove devDependencies to reduce image size
+RUN npm prune --production
+
 # Expose port
-EXPOSE 3001
+EXPOSE 3002
 
 # Start command
 CMD ["node", "dist/server.js"] 

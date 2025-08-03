@@ -9,7 +9,7 @@
 <li>Filtros avançados e visão customizável</li>
 <li>Exportação de dados</li>
 </ul>
-<p><strong>URL de Produção</strong>: <code>softwarehub-xp.wake.tech:8087</code></p>
+<p><strong>URL de Produção</strong>: <code>soft-inventario-xp.wake.tech:8089</code></p>
 <h2>🏗️ Arquitetura da Solução</h2>
 <h3>Stack Tecnológica</h3>
 <ul>
@@ -170,7 +170,7 @@ COPY . .
 RUN npx prisma generate
 
 # Expor porta
-EXPOSE 3001
+EXPOSE 3002
 
 # Comando de inicialização
 CMD ["node", "dist/server.js"]
@@ -209,7 +209,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432"
+      - "5434:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U softwarehub_user -d softwarehub"]
       interval: 30s
@@ -225,9 +225,9 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://softwarehub_user:${DB_PASSWORD}@db:5432/softwarehub
       JWT_SECRET: ${JWT_SECRET}
-      PORT: 3001
+      PORT: 3002
     ports:
-      - "3001:3001"
+      - "3003:3002"
     depends_on:
       db:
         condition: service_healthy
@@ -248,7 +248,7 @@ services:
     image: nginx:alpine
     restart: always
     ports:
-      - "8087:80"
+      - "8089:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
@@ -261,7 +261,7 @@ volumes:
 <h2>⚙️ Configuração Nginx</h2>
 <pre><code class="language-nginx"># nginx.conf
 upstream backend {
-    server backend:3001;
+    server backend:3002;
 }
 
 upstream frontend {
@@ -325,9 +325,9 @@ metadata:
   namespace: softwarehub
 data:
   NODE_ENV: "production"
-  PORT: "3001"
+  PORT: "3002"
   DB_HOST: "postgres-service"
-  DB_PORT: "5432"
+  DB_PORT: "5434"
   DB_NAME: "softwarehub"
   DB_USER: "softwarehub_user"
 </code></pre>
@@ -364,7 +364,7 @@ spec:
       - name: postgres
         image: postgres:15-alpine
         ports:
-        - containerPort: 5432
+        - containerPort: 5434
         env:
         - name: POSTGRES_DB
           valueFrom:
@@ -411,7 +411,7 @@ spec:
   selector:
     app: postgres
   ports:
-  - port: 5432
+  - port: 5434
     targetPort: 5432
   type: ClusterIP
 
@@ -449,7 +449,7 @@ spec:
       - name: backend
         image: softwarehub-backend:latest
         ports:
-        - containerPort: 3001
+        - containerPort: 3002
         env:
         - name: DATABASE_URL
           value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
@@ -503,13 +503,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 3001
+            port: 3002
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
-            port: 3001
+            port: 3002
           initialDelaySeconds: 5
           periodSeconds: 5
 
@@ -523,8 +523,8 @@ spec:
   selector:
     app: backend
   ports:
-  - port: 3001
-    targetPort: 3001
+  - port: 3002
+    targetPort: 3002
   type: ClusterIP
 </code></pre>
 <h3>Frontend Deployment</h3>
@@ -618,7 +618,7 @@ spec:
   selector:
     app: nginx
   ports:
-  - port: 8087
+  - port: 8089
     targetPort: 80
   type: LoadBalancer
 </code></pre>
@@ -978,12 +978,12 @@ kubectl wait --for=condition=available --timeout=300s deployment/frontend -n sof
 kubectl wait --for=condition=available --timeout=300s deployment/nginx -n softwarehub
 
 echo "✅ Deployment completed!"
-echo "🌐 Application available at: http://softwarehub-xp.wake.tech:8087"
+echo "🌐 Application available at: http://soft-inventario-xp.wake.tech:8089"
 </code></pre>
 <h2>🔐 Configurações de Segurança</h2>
 <h3>Environment Variables (.env)</h3>
 <pre><code class="language-bash"># Database
-DATABASE_URL=postgresql://softwarehub_user:your_secure_password@localhost:5432/softwarehub
+DATABASE_URL=postgresql://softwarehub_user:your_secure_password@localhost:5434/softwarehub
 DB_PASSWORD=your_secure_password
 
 # JWT
@@ -991,8 +991,8 @@ JWT_SECRET=your_super_secure_jwt_secret_key_here
 
 # Application
 NODE_ENV=production
-PORT=3001
-CORS_ORIGIN=http://softwarehub-xp.wake.tech:8087
+PORT=3002
+CORS_ORIGIN=http://soft-inventario-xp.wake.tech:8089
 
 # Security
 RATE_LIMIT_WINDOW_MS=900000
@@ -1052,4 +1052,4 @@ kubectl exec -n softwarehub deployment/postgres -- pg_dump -U softwarehub_user s
 </ul>
 <p><strong>⚠️ IMPORTANTE</strong>: Alterar a senha do admin imediatamente após o primeiro login!</p>
 <h2>🎉 Conclusão</h2>
-<p>Esta estrutura fornece uma solução completa e pronta para produção do SoftwareHub, com todas as funcionalidades atuais preservadas e dados persistidos em PostgreSQL. O sistema estará disponível em <code>softwarehub-xp.wake.tech:8087</code> após o deploy completo.</p>
+<p>Esta estrutura fornece uma solução completa e pronta para produção do SoftwareHub, com todas as funcionalidades atuais preservadas e dados persistidos em PostgreSQL. O sistema estará disponível em <code>soft-inventario-xp.wake.tech:8089</code> após o deploy completo.</p>

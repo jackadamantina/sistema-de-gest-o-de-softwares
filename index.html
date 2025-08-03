@@ -908,7 +908,7 @@
                                 <option value="">Selecione...</option>
                                 <option value="RemoverManual">Remover manual</option>
                                 <option value="RemocaoAutomatica">Remoção automática</option>
-                                <option value="NaoAplicavel">N/A</option>
+                                <option value="NA">N/A</option>
                             </select>
                         </div>
                         
@@ -2594,6 +2594,9 @@
                 // Campo legado para compatibilidade
                 criticidade: 'Media' // valor padrão
             };
+            
+            // Remover campos que não existem no schema do Prisma
+            delete softwareData.bloqueio;
             
             console.log('softwareData:', softwareData); // Debug log
             console.log('softwareData JSON:', JSON.stringify(softwareData)); // Debug log
