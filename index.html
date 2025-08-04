@@ -418,7 +418,7 @@
                         </div>
                         
                         <!-- Seletor de Colunas -->
-                        <div id="columnSelector" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <div id="columnSelector" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border" style="display: none;">
                             <div class="flex justify-between items-center mb-4">
                                 <h4 class="text-sm font-semibold text-gray-700">Selecionar Colunas Visíveis</h4>
                                 <div class="flex gap-2">
@@ -561,7 +561,7 @@
                         </div>
 
                         <!-- Filtros Avançados -->
-                        <div id="advancedFilters" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <div id="advancedFilters" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border" style="display: none;">
                             <h4 class="text-sm font-semibold text-gray-700 mb-3">Filtros Avançados</h4>
                             
                             <!-- Query Builder -->
@@ -1625,7 +1625,10 @@
                 setupEventListeners();
                 
                 // Initialize filters after data is loaded
-                setupSoftwareFilters();
+                // Pequeno delay para garantir que o DOM está pronto
+                setTimeout(function() {
+                    setupSoftwareFilters();
+                }, 100);
                 
                 // Initialize charts after data is loaded
                 console.log('Inicializando gráficos com', sampleData.length, 'softwares');
@@ -2100,19 +2103,66 @@
             // Column selector toggle
             var toggleColumnBtn = document.getElementById('toggleColumnSelector');
             var columnSelector = document.getElementById('columnSelector');
+            console.log('Toggle Column Button:', toggleColumnBtn);
+            console.log('Column Selector Panel:', columnSelector);
+            
             if (toggleColumnBtn && columnSelector) {
-                toggleColumnBtn.addEventListener('click', function() {
-                    columnSelector.classList.toggle('hidden');
+                console.log('Adding click listener to column button');
+                toggleColumnBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Column button clicked');
+                    
+                    // Toggle usando display style
+                    if (columnSelector.style.display === 'none' || columnSelector.style.display === '') {
+                        columnSelector.style.display = 'block';
+                        columnSelector.classList.remove('hidden');
+                    } else {
+                        columnSelector.style.display = 'none';
+                        columnSelector.classList.add('hidden');
+                    }
+                    
+                    // Fechar o painel de filtros se estiver aberto
+                    var advancedFilters = document.getElementById('advancedFilters');
+                    if (advancedFilters && advancedFilters.style.display !== 'none') {
+                        advancedFilters.style.display = 'none';
+                        advancedFilters.classList.add('hidden');
+                    }
                 });
+            } else {
+                console.error('Column button or selector not found');
             }
             
             // Advanced filters toggle
             var toggleFiltersBtn = document.getElementById('toggleAdvancedFilters');
             var advancedFilters = document.getElementById('advancedFilters');
+            console.log('Toggle Filters Button:', toggleFiltersBtn);
+            console.log('Advanced Filters Panel:', advancedFilters);
+            
             if (toggleFiltersBtn && advancedFilters) {
-                toggleFiltersBtn.addEventListener('click', function() {
-                    advancedFilters.classList.toggle('hidden');
+                console.log('Adding click listener to filters button');
+                toggleFiltersBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Filters button clicked');
+                    
+                    // Toggle usando display style
+                    if (advancedFilters.style.display === 'none' || advancedFilters.style.display === '') {
+                        advancedFilters.style.display = 'block';
+                        advancedFilters.classList.remove('hidden');
+                    } else {
+                        advancedFilters.style.display = 'none';
+                        advancedFilters.classList.add('hidden');
+                    }
+                    
+                    // Fechar o painel de colunas se estiver aberto
+                    if (columnSelector && columnSelector.style.display !== 'none') {
+                        columnSelector.style.display = 'none';
+                        columnSelector.classList.add('hidden');
+                    }
                 });
+            } else {
+                console.error('Filters button or panel not found');
             }
             
             // Apply column selection
