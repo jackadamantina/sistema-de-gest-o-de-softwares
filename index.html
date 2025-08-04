@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoftwareHub - Sistema de Gestão de Softwares v1.2.0</title>
+    <title>SoftwareHub - Sistema de Gestão de Softwares v1.3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -136,7 +136,7 @@
                         <i class="fas fa-shield-alt text-white text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">SoftwareHub <span class="text-sm text-blue-600 font-normal">v1.2.0</span></h1>
+                        <h1 class="text-2xl font-bold text-gray-900">SoftwareHub <span class="text-sm text-blue-600 font-normal">v1.3.0</span></h1>
                         <p class="text-sm text-gray-500">Gestão de Softwares</p>
                     </div>
                 </div>
@@ -170,7 +170,7 @@
                     <i class="fas fa-shield-alt text-white"></i>
                 </div>
                 <div class="ml-3">
-                    <h1 class="text-lg font-bold text-white">SoftwareHub <span class="text-xs text-blue-200 font-normal">v1.2.0</span></h1>
+                    <h1 class="text-lg font-bold text-white">SoftwareHub <span class="text-xs text-blue-200 font-normal">v1.3.0</span></h1>
                     <p class="text-xs text-gray-300">Gestão de Softwares</p>
                 </div>
             </div>
@@ -345,7 +345,7 @@
                             </div>
                             <div>
                                 <h3 class="text-lg font-semibold text-blue-900">Informações da Versão</h3>
-                                <p class="text-sm text-blue-700">SoftwareHub v1.2.0 - Última atualização: 28/07/2025</p>
+                                <p class="text-sm text-blue-700">SoftwareHub v1.3.0 - Última atualização: 04/08/2025</p>
                                 <p class="text-xs text-blue-600 mt-1">✅ API funcionando | ✅ 6 softwares cadastrados | ✅ Sistema otimizado</p>
                             </div>
                         </div>
@@ -406,11 +406,11 @@
                                     <i class="fas fa-download mr-2"></i>
                                     Exportar CSV
                                 </button>
-                                <button id="toggleColumnSelector" class="btn-default px-4 py-2 rounded font-medium flex items-center">
+                                <button id="toggleColumnSelector" class="btn-default px-4 py-2 rounded font-medium flex items-center" onclick="toggleColumnHandler(event)">
                                     <i class="fas fa-columns mr-2"></i>
                                     Colunas
                                 </button>
-                                <button id="toggleAdvancedFilters" class="btn-default px-4 py-2 rounded font-medium flex items-center">
+                                <button id="toggleAdvancedFilters" class="btn-default px-4 py-2 rounded font-medium flex items-center" onclick="toggleFiltersHandler(event)">
                                     <i class="fas fa-filter mr-2"></i>
                                     Filtros
                                 </button>
@@ -2000,6 +2000,9 @@
                 console.log('toggleColumnBtn event listener added');
             } else {
                 console.error('toggleColumnBtn or columnSelector not found');
+                // Tentar novamente em 500ms
+                setTimeout(setupColumnAndFilterToggles, 500);
+                return;
             }
             
             // Advanced filters toggle
@@ -2015,13 +2018,16 @@
                 console.log('toggleFiltersBtn event listener added');
             } else {
                 console.error('toggleFiltersBtn or advancedFilters not found');
+                // Tentar novamente em 500ms
+                setTimeout(setupColumnAndFilterToggles, 500);
+                return;
             }
         }
 
-        // Toggle column handler
-        function toggleColumnHandler(e) {
+        // Toggle column handler (global function for onclick)
+        window.toggleColumnHandler = function(e) {
             e.preventDefault();
-            console.log('toggleColumnBtn clicked');
+            console.log('toggleColumnBtn clicked via onclick');
             var columnSelector = document.getElementById('columnSelector');
             if (columnSelector) {
                 columnSelector.classList.toggle('hidden');
@@ -2031,10 +2037,10 @@
             }
         }
 
-        // Toggle filters handler
-        function toggleFiltersHandler(e) {
+        // Toggle filters handler (global function for onclick)
+        window.toggleFiltersHandler = function(e) {
             e.preventDefault();
-            console.log('toggleFiltersBtn clicked');
+            console.log('toggleFiltersBtn clicked via onclick');
             var advancedFilters = document.getElementById('advancedFilters');
             if (advancedFilters) {
                 advancedFilters.classList.toggle('hidden');
@@ -2070,6 +2076,12 @@
             if (targetBtn) {
                 targetBtn.classList.add('active', 'border-blue-600', 'text-blue-600');
                 targetBtn.classList.remove('border-transparent', 'text-gray-500');
+            }
+            
+            // Setup column and filter toggles when switching to softwares tab
+            if (tabName === 'softwares') {
+                console.log('Switching to softwares tab, setting up toggles...');
+                setTimeout(setupColumnAndFilterToggles, 100);
             }
         }
 
