@@ -4,7 +4,7 @@ FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy frontend files
-COPY index.html /usr/share/nginx/html/
+# Note: index.html is mounted as volume in docker-compose
 
 # Expose port
 EXPOSE 80
