@@ -60,8 +60,8 @@ check_ports() {
         docker-compose -f docker-compose.local.yml down 2>/dev/null || true
     fi
     
-    if lsof -Pi :5433 -sTCP:LISTEN -t >/dev/null 2>&1; then
-        log_error "Porta 5433 já está em uso"
+    if lsof -Pi :5435 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    log_error "Porta 5435 já está em uso"
         log_info "Parando containers conflitantes..."
         docker-compose -f docker-compose.local.yml down 2>/dev/null || true
     fi
@@ -84,7 +84,7 @@ create_env() {
 # Database
 DB_PASSWORD=softwarehub123
 DB_HOST=localhost
-DB_PORT=5433
+DB_PORT=5435
 DB_NAME=softwarehub
 DB_USER=softwarehub_user
 

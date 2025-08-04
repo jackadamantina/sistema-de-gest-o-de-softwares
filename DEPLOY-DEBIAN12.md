@@ -130,7 +130,7 @@ sudo tee .env << EOF
 # Database
 DB_PASSWORD=${DB_PASSWORD}
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5435
 DB_NAME=softwarehub
 DB_USER=softwarehub_user
 
@@ -212,16 +212,16 @@ sudo systemctl enable softwarehub.service
 
 - **8087**: Frontend (HTTP)
 - **3001**: Backend API
-- **5432**: PostgreSQL (interno)
+- **5435**: PostgreSQL (externo)
 
 ### Verificar Conflitos de Porta
 
 ```bash
 # Verificar portas em uso
-sudo netstat -tuln | grep -E ":(3001|5432|8087)"
+sudo netstat -tuln | grep -E ":(3001|5435|8087)"
 
 # Verificar containers usando estas portas
-sudo docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -E "(3001|5432|8087)"
+sudo docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -E "(3001|5435|8087)"
 ```
 
 ## 🔍 Monitoramento

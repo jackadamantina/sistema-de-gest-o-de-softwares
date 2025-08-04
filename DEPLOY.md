@@ -80,7 +80,7 @@ softwarehub/
 |---------|-------|-----------|
 | Frontend | 8087 | Interface web |
 | Backend | 3001 | API REST |
-| Database | 5432 | PostgreSQL |
+| Database | 5435 | PostgreSQL |
 
 ## 🔧 Configuração Manual
 
@@ -92,7 +92,7 @@ Crie um arquivo `.env`:
 # Database
 DB_PASSWORD=sua_senha_segura
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5435
 DB_NAME=softwarehub
 DB_USER=softwarehub_user
 

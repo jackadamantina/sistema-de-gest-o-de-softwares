@@ -112,7 +112,7 @@ create_env() {
 # Database
 DB_PASSWORD=softwarehub123
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5435
 DB_NAME=softwarehub
 DB_USER=softwarehub_user
 

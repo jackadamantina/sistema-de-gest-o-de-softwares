@@ -21,7 +21,7 @@ log_error() { echo -e "${RED}❌ $1${NC}"; }
 check_ports() {
     log_info "Verificando portas em uso..."
     
-    local ports=("3001" "5432" "8087")
+    local ports=("3001" "5435" "8087")
     local conflicts=()
     
     for port in "${ports[@]}"; do
