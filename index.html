@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoftwareHub - Sistema de Gestão de Softwares v1.3.0</title>
+    <title>SoftwareHub - Sistema de Gestão de Softwares v1.0.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -136,7 +136,7 @@
                         <i class="fas fa-shield-alt text-white text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">SoftwareHub <span class="text-sm text-blue-600 font-normal">v1.3.0</span></h1>
+                        <h1 class="text-2xl font-bold text-gray-900">SoftwareHub <span class="text-sm text-blue-600 font-normal">v1.0.0</span></h1>
                         <p class="text-sm text-gray-500">Gestão de Softwares</p>
                     </div>
                 </div>
@@ -170,7 +170,7 @@
                     <i class="fas fa-shield-alt text-white"></i>
                 </div>
                 <div class="ml-3">
-                    <h1 class="text-lg font-bold text-white">SoftwareHub <span class="text-xs text-blue-200 font-normal">v1.3.0</span></h1>
+                    <h1 class="text-lg font-bold text-white">SoftwareHub <span class="text-xs text-blue-200 font-normal">v1.0.0</span></h1>
                     <p class="text-xs text-gray-300">Gestão de Softwares</p>
                 </div>
             </div>
@@ -345,7 +345,7 @@
                             </div>
                             <div>
                                 <h3 class="text-lg font-semibold text-blue-900">Informações da Versão</h3>
-                                <p class="text-sm text-blue-700">SoftwareHub v1.3.0 - Última atualização: 04/08/2025</p>
+                                <p class="text-sm text-blue-700">SoftwareHub v1.0.0 - Última atualização: 04/08/2025</p>
                                 <p class="text-xs text-blue-600 mt-1">✅ API funcionando | ✅ 6 softwares cadastrados | ✅ Sistema otimizado</p>
                             </div>
                         </div>
@@ -2026,27 +2026,51 @@
 
         // Toggle column handler (global function for onclick)
         window.toggleColumnHandler = function(e) {
-            e.preventDefault();
-            console.log('toggleColumnBtn clicked via onclick');
+            if (e) e.preventDefault();
+            console.log('=== toggleColumnHandler called ===');
+            
             var columnSelector = document.getElementById('columnSelector');
+            console.log('columnSelector element:', columnSelector);
+            
             if (columnSelector) {
+                var wasHidden = columnSelector.classList.contains('hidden');
                 columnSelector.classList.toggle('hidden');
-                console.log('columnSelector hidden:', columnSelector.classList.contains('hidden'));
+                var isNowHidden = columnSelector.classList.contains('hidden');
+                console.log('columnSelector was hidden:', wasHidden, 'now hidden:', isNowHidden);
+                
+                // Forçar reflow para garantir que a mudança seja aplicada
+                columnSelector.offsetHeight;
             } else {
-                console.error('columnSelector not found in toggleColumnHandler');
+                console.error('❌ columnSelector not found!');
+                console.log('Available elements with "column" in ID:');
+                document.querySelectorAll('[id*="column"]').forEach(function(el) {
+                    console.log('-', el.id, el.tagName);
+                });
             }
         }
 
         // Toggle filters handler (global function for onclick)
         window.toggleFiltersHandler = function(e) {
-            e.preventDefault();
-            console.log('toggleFiltersBtn clicked via onclick');
+            if (e) e.preventDefault();
+            console.log('=== toggleFiltersHandler called ===');
+            
             var advancedFilters = document.getElementById('advancedFilters');
+            console.log('advancedFilters element:', advancedFilters);
+            
             if (advancedFilters) {
+                var wasHidden = advancedFilters.classList.contains('hidden');
                 advancedFilters.classList.toggle('hidden');
-                console.log('advancedFilters hidden:', advancedFilters.classList.contains('hidden'));
+                var isNowHidden = advancedFilters.classList.contains('hidden');
+                console.log('advancedFilters was hidden:', wasHidden, 'now hidden:', isNowHidden);
+                
+                // Forçar reflow para garantir que a mudança seja aplicada
+                advancedFilters.offsetHeight;
             } else {
-                console.error('advancedFilters not found in toggleFiltersHandler');
+                console.error('❌ advancedFilters not found!');
+                console.log('Available elements with "filter" in ID:');
+                document.querySelectorAll('[id*="filter"]').forEach(function(el) {
+                    console.log('-', el.id, el.tagName);
+                });
             }
         }
 
@@ -3691,9 +3715,70 @@
 
         // Wait for DOM to be ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('DOM loaded, initializing app...');
+                initApp();
+                
+                // Setup column and filter toggles immediately
+                setTimeout(function() {
+                    setupColumnAndFilterToggles();
+                    testColumnAndFilterElements();
+                }, 100);
+            });
         } else {
+            console.log('DOM already loaded, initializing app...');
             initApp();
+            
+            // Setup column and filter toggles immediately
+            setTimeout(function() {
+                setupColumnAndFilterToggles();
+                testColumnAndFilterElements();
+            }, 100);
+        }
+
+        // Test function to check if elements exist
+        function testColumnAndFilterElements() {
+            console.log('=== TESTING COLUMN AND FILTER ELEMENTS ===');
+            
+            var toggleColumnBtn = document.getElementById('toggleColumnSelector');
+            var columnSelector = document.getElementById('columnSelector');
+            var toggleFiltersBtn = document.getElementById('toggleAdvancedFilters');
+            var advancedFilters = document.getElementById('advancedFilters');
+            
+            console.log('toggleColumnBtn:', toggleColumnBtn);
+            console.log('columnSelector:', columnSelector);
+            console.log('toggleFiltersBtn:', toggleFiltersBtn);
+            console.log('advancedFilters:', advancedFilters);
+            
+            if (toggleColumnBtn) {
+                console.log('✅ toggleColumnBtn found');
+                console.log('toggleColumnBtn onclick:', toggleColumnBtn.onclick);
+                console.log('toggleColumnBtn onclick attribute:', toggleColumnBtn.getAttribute('onclick'));
+            } else {
+                console.error('❌ toggleColumnBtn not found');
+            }
+            
+            if (columnSelector) {
+                console.log('✅ columnSelector found');
+                console.log('columnSelector classes:', columnSelector.className);
+            } else {
+                console.error('❌ columnSelector not found');
+            }
+            
+            if (toggleFiltersBtn) {
+                console.log('✅ toggleFiltersBtn found');
+                console.log('toggleFiltersBtn onclick:', toggleFiltersBtn.onclick);
+                console.log('toggleFiltersBtn onclick attribute:', toggleFiltersBtn.getAttribute('onclick'));
+            } else {
+                console.error('❌ toggleFiltersBtn not found');
+            }
+            
+            if (advancedFilters) {
+                console.log('✅ advancedFilters found');
+                console.log('advancedFilters classes:', advancedFilters.className);
+            } else {
+                console.error('❌ advancedFilters not found');
+            }
         }
         
         // Função de teste global para debug
