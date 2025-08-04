@@ -85,14 +85,38 @@ docker-compose -f docker-compose.production.yml up -d db
 sleep 10  # Aguardar o banco iniciar
 
 show_progress "Restaurando banco de dados..."
+
+# Verificar as variáveis de ambiente do banco
+if [ -f "/opt/sistema-gestao-softwares/.env" ]; then
+    source /opt/sistema-gestao-softwares/.env
+fi
+
+# Usar as variáveis de ambiente ou valores padrão
+DB_USER="${DB_USER:-postgres}"
+DB_NAME="${DB_NAME:-softwarehub}"
+
+# Detectar o nome do container
+DB_CONTAINER=""
+for name in "sistema-gestao-softwares-db-1" "sistema-gestao-db-1" "sistema-gestao-softwares_db_1" "db"; do
+    if docker ps --format "{{.Names}}" | grep -q "^${name}$"; then
+        DB_CONTAINER="$name"
+        break
+    fi
+done
+
+if [ -z "$DB_CONTAINER" ]; then
+    show_error "Container do banco de dados não encontrado"
+    exit 1
+fi
+
 DB_FILE=$(find "$TEMP_DIR" -name "*-database.sql" -type f | head -1)
 if [ -f "$DB_FILE" ]; then
     # Dropar banco existente e recriar
-    docker exec sistema-gestao-softwares-db-1 psql -U softwarehub -c "DROP DATABASE IF EXISTS softwarehub;"
-    docker exec sistema-gestao-softwares-db-1 psql -U softwarehub -c "CREATE DATABASE softwarehub;"
+    docker exec $DB_CONTAINER psql -U "$DB_USER" -c "DROP DATABASE IF EXISTS $DB_NAME;"
+    docker exec $DB_CONTAINER psql -U "$DB_USER" -c "CREATE DATABASE $DB_NAME;"
     
     # Restaurar dados
-    docker exec -i sistema-gestao-softwares-db-1 psql -U softwarehub softwarehub < "$DB_FILE"
+    docker exec -i $DB_CONTAINER psql -U "$DB_USER" "$DB_NAME" < "$DB_FILE"
     show_success "Banco de dados restaurado"
 else
     show_error "Arquivo de banco de dados não encontrado no backup"

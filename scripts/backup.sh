@@ -67,15 +67,33 @@ if [ -z "$DB_CONTAINER" ]; then
     exit 1
 fi
 
+# Verificar as variáveis de ambiente do banco
+if [ -f "/opt/sistema-gestao-softwares/.env" ]; then
+    source /opt/sistema-gestao-softwares/.env
+fi
+
+# Usar as variáveis de ambiente ou valores padrão
+DB_USER="${DB_USER:-postgres}"
+DB_NAME="${DB_NAME:-softwarehub}"
+
+show_progress "Usando usuário: $DB_USER, banco: $DB_NAME"
+
 # Fazer o backup
-if docker exec $DB_CONTAINER pg_dump -U softwarehub softwarehub > "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" 2>&1; then
+if docker exec $DB_CONTAINER pg_dump -U "$DB_USER" "$DB_NAME" > "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" 2>&1; then
     DB_SIZE=$(du -h "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" | cut -f1)
     show_success "Backup do banco de dados concluído (${DB_SIZE})"
 else
     show_error "Erro ao fazer backup do banco de dados"
-    # Mostrar o erro real
-    docker exec $DB_CONTAINER pg_dump -U softwarehub softwarehub
-    exit 1
+    # Tentar com postgres como usuário padrão
+    show_progress "Tentando com usuário postgres..."
+    if docker exec $DB_CONTAINER pg_dump -U postgres "$DB_NAME" > "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" 2>&1; then
+        DB_SIZE=$(du -h "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" | cut -f1)
+        show_success "Backup do banco de dados concluído com usuário postgres (${DB_SIZE})"
+    else
+        # Mostrar o erro real
+        docker exec $DB_CONTAINER pg_dump -U postgres "$DB_NAME"
+        exit 1
+    fi
 fi
 
 # 2. Backup dos uploads
