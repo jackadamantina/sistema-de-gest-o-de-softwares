@@ -84,25 +84,32 @@ fi
 read -p "Digite a porta para o frontend (padrão 80): " WEB_PORT
 WEB_PORT=${WEB_PORT:-$DEFAULT_WEB_PORT}
 
-if port_in_use $WEB_PORT; then
-    print_message "Porta $WEB_PORT já está em uso!" "$RED"
-    read -p "Digite outra porta: " WEB_PORT
+# Verificar se a porta está em uso (apenas se não for root)
+if [ "$EUID" -ne 0 ] || command_exists lsof; then
+    if port_in_use $WEB_PORT; then
+        print_message "Porta $WEB_PORT já está em uso!" "$RED"
+        read -p "Digite outra porta: " WEB_PORT
+    fi
 fi
 
 read -p "Digite a porta para a API (padrão 3002): " API_PORT
 API_PORT=${API_PORT:-$DEFAULT_API_PORT}
 
-if port_in_use $API_PORT; then
-    print_message "Porta $API_PORT já está em uso!" "$RED"
-    read -p "Digite outra porta: " API_PORT
+if [ "$EUID" -ne 0 ] || command_exists lsof; then
+    if port_in_use $API_PORT; then
+        print_message "Porta $API_PORT já está em uso!" "$RED"
+        read -p "Digite outra porta: " API_PORT
+    fi
 fi
 
 read -p "Digite a porta para o PostgreSQL (padrão 5432): " DB_PORT
 DB_PORT=${DB_PORT:-$DEFAULT_DB_PORT}
 
-if port_in_use $DB_PORT; then
-    print_message "Porta $DB_PORT já está em uso!" "$RED"
-    read -p "Digite outra porta: " DB_PORT
+if [ "$EUID" -ne 0 ] || command_exists lsof; then
+    if port_in_use $DB_PORT; then
+        print_message "Porta $DB_PORT já está em uso!" "$RED"
+        read -p "Digite outra porta: " DB_PORT
+    fi
 fi
 
 # Senhas
@@ -138,26 +145,47 @@ echo ""
 # 4. Clonar ou atualizar repositório
 print_message "4. Obtendo código fonte..." "$YELLOW"
 
-cd /tmp
-if [ -d "sistema-gestao-softwares-temp" ]; then
-    rm -rf sistema-gestao-softwares-temp
-fi
+# Obter o diretório atual de forma mais robusta
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+print_message "Diretório do script: $SCRIPT_DIR" "$BLUE"
 
-# Como não temos um repositório Git, vamos copiar os arquivos locais
-# Assumindo que o script está sendo executado no diretório do projeto
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-
-if [ ! -f "$SCRIPT_DIR/docker-compose.yml" ]; then
-    print_message "Erro: docker-compose.yml não encontrado no diretório atual!" "$RED"
-    print_message "Execute este script no diretório raiz do projeto." "$YELLOW"
+# Verificar se estamos no diretório correto
+if [ ! -f "$SCRIPT_DIR/docker-compose.yml" ] && [ ! -f "./docker-compose.yml" ]; then
+    print_message "Erro: docker-compose.yml não encontrado!" "$RED"
+    print_message "Arquivos no diretório atual:" "$YELLOW"
+    ls -la
     exit 1
 fi
 
+# Se o arquivo existe no diretório atual mas não no SCRIPT_DIR
+if [ -f "./docker-compose.yml" ] && [ ! -f "$SCRIPT_DIR/docker-compose.yml" ]; then
+    SCRIPT_DIR="$(pwd)"
+    print_message "Usando diretório atual: $SCRIPT_DIR" "$BLUE"
+fi
+
 # Copiar arquivos necessários
+print_message "Copiando arquivos de $SCRIPT_DIR para $INSTALL_DIR..." "$BLUE"
 sudo cp -r "$SCRIPT_DIR"/* $INSTALL_DIR/
 sudo cp -r "$SCRIPT_DIR"/.* $INSTALL_DIR/ 2>/dev/null || true
 
 print_message "✓ Código fonte copiado" "$GREEN"
+
+# Verificar se os arquivos essenciais foram copiados
+if [ ! -f "$INSTALL_DIR/docker-compose.yml" ]; then
+    print_message "Erro: Falha ao copiar docker-compose.yml!" "$RED"
+    exit 1
+fi
+
+if [ ! -f "$INSTALL_DIR/backend/Dockerfile" ]; then
+    print_message "Aviso: backend/Dockerfile não encontrado, usando Dockerfile.dev" "$YELLOW"
+    if [ -f "$INSTALL_DIR/backend/Dockerfile.dev" ]; then
+        cp "$INSTALL_DIR/backend/Dockerfile.dev" "$INSTALL_DIR/backend/Dockerfile"
+    else
+        print_message "Erro: Nenhum Dockerfile encontrado no backend!" "$RED"
+        exit 1
+    fi
+fi
+
 echo ""
 
 # 5. Criar arquivo de configuração do Docker Compose para produção
