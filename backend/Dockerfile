@@ -12,6 +12,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Create scripts directory and copy scripts
+RUN mkdir -p scripts
+COPY scripts/ ./scripts/
+RUN chmod +x scripts/*.sh || true
+
 # Generate Prisma Client
 RUN npx prisma generate
 
