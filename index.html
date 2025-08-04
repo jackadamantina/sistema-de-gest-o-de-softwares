@@ -1497,24 +1497,41 @@
         
         async function loadAuditLogs() {
             try {
+                console.log('=== LOADING AUDIT LOGS ===');
                 const headers = getAuthHeaders();
                 
+                console.log('Fetching from:', `${API_BASE_URL}/audit`);
                 const response = await fetch(`${API_BASE_URL}/audit`, {
                     headers: headers
                 });
                 
+                console.log('Response status:', response.status);
+                
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
+                console.log('Raw API response:', data);
+                
                 logsData = data.data || [];
                 filteredLogsData = [];
                 
                 console.log('Audit logs loaded from API:', logsData);
+                console.log('Number of logs:', logsData.length);
+                
+                // Verificar se os logs têm a estrutura correta
+                if (logsData.length > 0) {
+                    console.log('First log structure:', logsData[0]);
+                }
+                
                 return logsData;
             } catch (error) {
                 console.error('Error loading audit logs:', error);
+                logsData = [];
+                filteredLogsData = [];
                 return [];
             }
         }
@@ -1601,7 +1618,7 @@
                 populateTable();
                 populateSoftwaresPageTable();
                 populateUsersTable();
-                populateLogs();
+                populateLogsTable(); // Corrigido nome da função
                 await updateDashboardStats();
                 
                 // Setup event listeners
@@ -2688,10 +2705,19 @@
             document.getElementById('userPasswordConfirm').required = true;
         }
 
+        // Flag para prevenir múltiplas submissões
+        let isSubmittingSoftware = false;
+
         // Submit handlers
         async function handleSoftwareSubmit(e) {
             e.preventDefault();
             console.log('handleSoftwareSubmit called'); // Debug log
+            
+            // Prevenir múltiplas submissões
+            if (isSubmittingSoftware) {
+                console.log('Já está processando uma submissão, ignorando...');
+                return;
+            }
             
             // Validação dos campos obrigatórios
             var softwareName = document.getElementById('softwareName').value.trim();
@@ -2833,6 +2859,9 @@
             console.log('=== DADOS FINAIS APÓS CORREÇÃO ===');
             console.log('softwareData JSON final:', JSON.stringify(softwareData));
             
+            // Marcar que está processando
+            isSubmittingSoftware = true;
+            
             try {
                 if (editId) {
                     // Edit existing software
@@ -2864,6 +2893,9 @@
             } catch (error) {
                 console.error('Erro ao salvar software:', error);
                 alert('Erro ao salvar software. Verifique o console para mais detalhes.');
+            } finally {
+                // Sempre resetar a flag
+                isSubmittingSoftware = false;
             }
         }
 

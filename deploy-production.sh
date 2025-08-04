@@ -17,6 +17,10 @@ NC='\033[0m' # No Color
 echo -e "${CYAN}================================================${NC}"
 echo -e "${CYAN}   Sistema de Gestão de Softwares - Deploy     ${NC}"
 echo -e "${CYAN}================================================${NC}"
+
+# Mostrar versão atual
+CURRENT_VERSION=$(cat VERSION 2>/dev/null || echo "1.0.0")
+echo -e "${BLUE}Versão atual: ${YELLOW}v${CURRENT_VERSION}${NC}"
 echo ""
 
 # Verificar se está rodando como root
@@ -33,6 +37,32 @@ DB_PORT="5435"  # Porta fixa do PostgreSQL
 DB_PASSWORD="SoftwareHub@2024Secure"  # Senha padrão do banco
 JWT_SECRET="DefaultJWTSecretChangeInProduction2024"  # JWT padrão
 
+# Verificar se deve incrementar versão
+echo -e "${YELLOW}=== Controle de Versão ===${NC}"
+read -p "Incrementar versão antes do deploy? (s/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Ss]$ ]]; then
+    if [ -f "scripts/bump-version.sh" ]; then
+        echo "Escolha o tipo de incremento:"
+        echo "1) Patch (1.0.0 → 1.0.1) - Correções"
+        echo "2) Minor (1.0.0 → 1.1.0) - Novos recursos"
+        echo "3) Major (1.0.0 → 2.0.0) - Mudanças grandes"
+        read -p "Opção (1-3): " VERSION_TYPE
+        
+        case $VERSION_TYPE in
+            1) ./scripts/bump-version.sh patch ;;
+            2) ./scripts/bump-version.sh minor ;;
+            3) ./scripts/bump-version.sh major ;;
+            *) ./scripts/bump-version.sh patch ;;
+        esac
+        
+        # Atualizar versão
+        CURRENT_VERSION=$(cat VERSION)
+        echo -e "${GREEN}Nova versão: v${CURRENT_VERSION}${NC}"
+    fi
+fi
+
+echo ""
 # Solicitar apenas informações essenciais
 echo -e "${YELLOW}=== Configuração do Deploy ===${NC}"
 echo ""

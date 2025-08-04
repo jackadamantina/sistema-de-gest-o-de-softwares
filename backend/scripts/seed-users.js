@@ -94,6 +94,31 @@ async function seedUsers() {
       }
     }
 
+    // Gerar alguns logs de exemplo em desenvolvimento
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 Gerando logs de exemplo...');
+      
+      const logTypes = [
+        { type: 'login', action: 'Login no sistema', details: 'Login bem-sucedido' },
+        { type: 'create', action: 'Criou software', details: 'Microsoft Office 365 adicionado' },
+        { type: 'update', action: 'Atualizou perfil', details: 'Foto de perfil atualizada' }
+      ];
+
+      for (const log of logTypes) {
+        await prisma.auditLog.create({
+          data: {
+            userId: admin.id,
+            userName: admin.name,
+            action: log.action,
+            details: log.details,
+            type: log.type
+          }
+        });
+      }
+      
+      console.log('✅ Logs de exemplo criados');
+    }
+
     console.log('🎉 Seed concluído com sucesso!');
   } catch (error) {
     console.error('❌ Erro no seed:', error);
