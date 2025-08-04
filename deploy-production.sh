@@ -93,11 +93,86 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 # Copiar estrutura mantendo permissões
 cp -r "$PROJECT_DIR"/{backend,frontend,scripts,*.yml,*.html,*.md} "$INSTALL_DIR/" 2>/dev/null || true
 
-# Verificar se docker-compose.production.yml existe
-if [ ! -f "$INSTALL_DIR/docker-compose.production.yml" ]; then
-    echo -e "${YELLOW}Criando docker-compose.production.yml...${NC}"
-    cp "$INSTALL_DIR/docker-compose.yml" "$INSTALL_DIR/docker-compose.production.yml" 2>/dev/null || true
-fi
+# Sempre criar docker-compose.production.yml novo com porta 5435
+echo -e "${YELLOW}Criando docker-compose.production.yml com porta 5435...${NC}"
+cat > "$INSTALL_DIR/docker-compose.production.yml" << 'EOFDOCKER'
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: softwarehub
+      POSTGRES_USER: softwarehub_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-SoftwareHub@2024Secure}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U softwarehub_user -d softwarehub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://softwarehub_user:${DB_PASSWORD:-SoftwareHub@2024Secure}@db:5432/softwarehub
+      JWT_SECRET: ${JWT_SECRET:-DefaultJWTSecretChangeInProduction2024}
+      NODE_ENV: production
+      PORT: 3002
+    ports:
+      - "${BACKEND_PORT:-3002}:3002"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - app-network
+    command: >
+      sh -c "
+        echo 'Aguardando banco de dados...' &&
+        sleep 5 &&
+        echo 'Gerando Prisma Client...' &&
+        npx prisma generate &&
+        echo 'Aplicando migrações...' &&
+        npx prisma migrate deploy &&
+        echo 'Iniciando servidor...' &&
+        node dist/server.js
+      "
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-8089}:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+EOFDOCKER
 
 # Criar arquivo .env
 echo -e "${YELLOW}3. Criando arquivo de configuração...${NC}"
