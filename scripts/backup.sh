@@ -25,6 +25,12 @@ echo -e "${BLUE}Iniciando backup em $(date)${NC}\n"
 # Criar diretório de backup se não existir
 mkdir -p "${BACKUP_DIR}"
 
+# Verificar se temos permissão de escrita
+if [ ! -w "${BACKUP_DIR}" ]; then
+    show_error "Sem permissão de escrita no diretório ${BACKUP_DIR}"
+    exit 1
+fi
+
 # Função para mostrar progresso
 show_progress() {
     echo -e "${YELLOW}➜ $1${NC}"
@@ -42,10 +48,33 @@ show_error() {
 
 # 1. Backup do banco de dados
 show_progress "Fazendo backup do banco de dados..."
-if docker exec sistema-gestao-softwares-db-1 pg_dump -U softwarehub softwarehub > "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" 2>/dev/null; then
-    show_success "Backup do banco de dados concluído"
+
+# Verificar se o container está rodando
+# Em produção, o container pode ter um nome diferente
+DB_CONTAINER=""
+for name in "sistema-gestao-softwares-db-1" "sistema-gestao-db-1" "sistema-gestao-softwares_db_1" "db"; do
+    if docker ps --format "{{.Names}}" | grep -q "^${name}$"; then
+        DB_CONTAINER="$name"
+        show_progress "Container do banco encontrado: $DB_CONTAINER"
+        break
+    fi
+done
+
+if [ -z "$DB_CONTAINER" ]; then
+    show_error "Container do banco de dados não encontrado"
+    echo "Containers em execução:"
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+    exit 1
+fi
+
+# Fazer o backup
+if docker exec $DB_CONTAINER pg_dump -U softwarehub softwarehub > "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" 2>&1; then
+    DB_SIZE=$(du -h "${BACKUP_DIR}/${BACKUP_NAME}-database.sql" | cut -f1)
+    show_success "Backup do banco de dados concluído (${DB_SIZE})"
 else
     show_error "Erro ao fazer backup do banco de dados"
+    # Mostrar o erro real
+    docker exec $DB_CONTAINER pg_dump -U softwarehub softwarehub
     exit 1
 fi
 
