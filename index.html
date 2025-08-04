@@ -155,9 +155,6 @@
                 <button type="submit" class="w-full btn-primary py-3 px-4 rounded font-medium">
                     Entrar
                 </button>
-                <button type="button" id="testLoginBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded font-medium mt-2">
-                    Teste Login (Debug)
-                </button>
                 <div class="text-center">
                     <a href="#" class="text-sm text-blue-600 hover:text-blue-700">Esqueceu sua senha?</a>
                 </div>
@@ -1846,8 +1843,14 @@
                         });
                         
                         if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.message || 'Erro no login');
+                            let errorMessage = 'Erro no login';
+                            try {
+                                const errorData = await response.json();
+                                errorMessage = errorData.message || errorData.error || errorMessage;
+                            } catch (e) {
+                                errorMessage = `Erro ${response.status}: ${response.statusText}`;
+                            }
+                            throw new Error(errorMessage);
                         }
                         
                         const data = await response.json();
@@ -1888,34 +1891,7 @@
                 console.error('Login form não encontrado!');
             }
             
-            // Test login button
-            var testLoginBtn = document.getElementById('testLoginBtn');
-            if (testLoginBtn) {
-                console.log('Configurando botão de teste de login');
-                testLoginBtn.addEventListener('click', async function() {
-                    console.log('=== BOTÃO DE TESTE CLICADO ===');
-                    console.log('Iniciando login automático...');
-                    
-                    try {
-                        // Fazer login automático
-                        const loginSuccess = await autoLogin();
-                        console.log('Resultado do autoLogin:', loginSuccess);
-                        
-                        if (loginSuccess) {
-                            console.log('Login automático bem-sucedido');
-                            hideLogin();
-                        } else {
-                            console.log('Login automático falhou');
-                            alert('Erro no login automático');
-                        }
-                    } catch (error) {
-                        console.error('Erro no botão de teste:', error);
-                        alert('Erro no botão de teste: ' + error.message);
-                    }
-                });
-            } else {
-                console.error('Botão de teste de login não encontrado!');
-            }
+
 
             // Logout button
             var logoutBtn = document.getElementById('logoutBtn');

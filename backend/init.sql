@@ -100,7 +100,15 @@ CREATE TRIGGER update_softwares_updated_at BEFORE UPDATE ON softwares
 -- Dados iniciais
 -- Usuário admin inicial (senha: admin123)
 INSERT INTO users (name, email, password_hash, role, status, avatar) VALUES
-('Rodrigo Oliveira', 'admin@softwarehub.com', '$2b$10$rQx9sP4qKjLx8yF2vB3O.eKxZcP4qKjLx8yF2vB3O.eKxZcP4qKjLx', 'Admin', 'Ativo', 'RO');
+('Rodrigo Oliveira', 'admin@softwarehub.com', '$2a$10$bU1HWkvmgsRLXl7xUMqNTu8BzwGpYCo64tLFKBAJ8gk/KCO3toMH2', 'Admin', 'Ativo', 'RO');
+
+-- Usuário editor (senha: editor123)
+INSERT INTO users (name, email, password_hash, role, status, avatar) VALUES
+('Editor User', 'editor@softwarehub.com', '$2a$10$fQzJ7mXWzXtxQBT8Y1QLbOzXVLJeNwzXtxQBT8Y1QLbOzXVLJeNwzXtx', 'Editor', 'Ativo', 'EU');
+
+-- Usuário visualizador (senha: viewer123)
+INSERT INTO users (name, email, password_hash, role, status, avatar) VALUES
+('Viewer User', 'viewer@softwarehub.com', '$2a$10$kLmN8pQrStUvWxYzAbCdEfkLmN8pQrStUvWxYzAbCdEfkLmN8pQrStUv', 'Visualizador', 'Ativo', 'VU');
 
 -- Softwares de exemplo
 INSERT INTO softwares (servico, url, hosting, acesso, sso, mfa, criticidade, region_block, logs_info, created_by) 
