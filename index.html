@@ -649,10 +649,51 @@
                             </div>
                         </div>
                         
+                        <!-- Filtros Avançados -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-sm font-semibold text-gray-700">Filtros Avançados</h4>
+                                <div class="flex space-x-2">
+                                    <button id="clearAllFilters" class="btn-default px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-times mr-1"></i>Limpar Todos
+                                    </button>
+                                    <button id="toggleFilters" class="btn-primary px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-filter mr-1"></i>Mostrar/Ocultar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="filtersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                <!-- Filtros serão populados dinamicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Controles de Seleção -->
+                        <div class="mb-4 flex justify-between items-center">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">Selecionar Todos</span>
+                                </label>
+                                <span id="selectedCount" class="text-sm text-gray-600">0 itens selecionados</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="exportSelected" class="btn-success px-3 py-1 rounded text-xs" disabled>
+                                    <i class="fas fa-download mr-1"></i>Exportar Selecionados
+                                </button>
+                                <button id="deleteSelected" class="btn-danger px-3 py-1 rounded text-xs" disabled>
+                                    <i class="fas fa-trash mr-1"></i>Excluir Selecionados
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="overflow-x-auto">
                             <table class="min-w-full">
                                 <thead class="table-header">
                                     <tr id="softwareTableHeader">
+                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-12">
+                                            <input type="checkbox" id="headerSelectAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        </th>
                                         <!-- Headers will be populated by JavaScript -->
                                     </tr>
                                 </thead>
@@ -3259,6 +3300,15 @@
             }
             
             currentPage = pageName;
+            
+            // Inicializar filtros e seleção para a página de softwares
+            if (pageName === 'softwares') {
+                setTimeout(function() {
+                    initializeFilters();
+                    setupFilterAndSelectionEvents();
+                    populateSoftwaresPageTable();
+                }, 100);
+            }
         }
 
         // Login functions
@@ -3354,6 +3404,314 @@
             }
         }
 
+        // Variáveis globais para filtros e seleção
+        var softwareFilters = {};
+        var selectedSoftwareIds = new Set();
+        var filteredSoftwareData = [];
+
+        // Inicializar filtros
+        function initializeFilters() {
+            var filtersContainer = document.getElementById('filtersContainer');
+            if (!filtersContainer) return;
+
+            // Limpar container
+            filtersContainer.innerHTML = '';
+
+            // Criar filtros para cada coluna visível
+            visibleColumns.forEach(function(column) {
+                var filterDiv = document.createElement('div');
+                filterDiv.className = 'flex flex-col';
+                
+                var label = document.createElement('label');
+                label.className = 'block text-xs font-medium text-gray-700 mb-1';
+                label.textContent = getColumnLabel(column);
+                
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'w-full border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500';
+                input.placeholder = 'Filtrar ' + getColumnLabel(column);
+                input.id = 'filter_' + column;
+                
+                // Adicionar evento de filtro
+                input.addEventListener('input', function() {
+                    softwareFilters[column] = this.value.toLowerCase();
+                    applyFilters();
+                });
+                
+                filterDiv.appendChild(label);
+                filterDiv.appendChild(input);
+                filtersContainer.appendChild(filterDiv);
+            });
+        }
+
+        // Obter label da coluna
+        function getColumnLabel(column) {
+            var columnLabels = {
+                'servico': 'Serviço/Plataforma',
+                'description': 'Descrição',
+                'url': 'URL',
+                'hosting': 'Hosting',
+                'acesso': 'Acesso',
+                'responsible': 'Responsável',
+                'namedUser': 'Usuário Nomeado',
+                'integratedUser': 'Usuário Integrado',
+                'sso': 'SSO',
+                'onboarding': 'Criação Onboarding',
+                'offboarding': 'Offboarding',
+                'offboardingType': 'Tipo Offboarding',
+                'affectedTeams': 'Times Afetados',
+                'logsInfo': 'Informações Logs',
+                'logsRetention': 'Retenção Logs',
+                'logs': 'Status Logs',
+                'mfaPolicy': 'Política MFA',
+                'mfa': 'MFA',
+                'mfaSMS': 'MFA por SMS',
+                'bloqueio': 'Bloqueio Regional',
+                'passwordPolicy': 'Política de Senha',
+                'sensitiveData': 'Dados Sensíveis',
+                'criticidade': 'Criticidade'
+            };
+            return columnLabels[column] || column;
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            filteredSoftwareData = sampleData.filter(function(item) {
+                for (var column in softwareFilters) {
+                    if (softwareFilters[column]) {
+                        var value = String(item[column] || '').toLowerCase();
+                        if (!value.includes(softwareFilters[column])) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            });
+            
+            populateSoftwaresPageTable();
+            updateSelectedCount();
+        }
+
+        // Limpar todos os filtros
+        function clearAllFilters() {
+            softwareFilters = {};
+            var filterInputs = document.querySelectorAll('#filtersContainer input');
+            filterInputs.forEach(function(input) {
+                input.value = '';
+            });
+            applyFilters();
+        }
+
+        // Toggle filtros
+        function toggleFilters() {
+            var container = document.getElementById('filtersContainer');
+            if (container.style.display === 'none') {
+                container.style.display = 'grid';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Seleção de itens
+        function selectAllItems(checked) {
+            var checkboxes = document.querySelectorAll('#softwarePageTableBody input[type="checkbox"]');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = checked;
+                var itemId = checkbox.value;
+                if (checked) {
+                    selectedSoftwareIds.add(itemId);
+                } else {
+                    selectedSoftwareIds.delete(itemId);
+                }
+            });
+            updateSelectedCount();
+            updateActionButtons();
+        }
+
+        // Selecionar item individual
+        function selectItem(itemId, checked) {
+            if (checked) {
+                selectedSoftwareIds.add(itemId);
+            } else {
+                selectedSoftwareIds.delete(itemId);
+            }
+            updateSelectedCount();
+            updateActionButtons();
+            updateHeaderCheckbox();
+        }
+
+        // Atualizar contador de selecionados
+        function updateSelectedCount() {
+            var countElement = document.getElementById('selectedCount');
+            if (countElement) {
+                countElement.textContent = selectedSoftwareIds.size + ' itens selecionados';
+            }
+        }
+
+        // Atualizar botões de ação
+        function updateActionButtons() {
+            var exportBtn = document.getElementById('exportSelected');
+            var deleteBtn = document.getElementById('deleteSelected');
+            
+            if (selectedSoftwareIds.size > 0) {
+                exportBtn.disabled = false;
+                deleteBtn.disabled = false;
+            } else {
+                exportBtn.disabled = true;
+                deleteBtn.disabled = true;
+            }
+        }
+
+        // Atualizar checkbox do header
+        function updateHeaderCheckbox() {
+            var headerCheckbox = document.getElementById('headerSelectAll');
+            var itemCheckboxes = document.querySelectorAll('#softwarePageTableBody input[type="checkbox"]');
+            var checkedCount = 0;
+            
+            itemCheckboxes.forEach(function(checkbox) {
+                if (checkbox.checked) checkedCount++;
+            });
+            
+            if (checkedCount === 0) {
+                headerCheckbox.indeterminate = false;
+                headerCheckbox.checked = false;
+            } else if (checkedCount === itemCheckboxes.length) {
+                headerCheckbox.indeterminate = false;
+                headerCheckbox.checked = true;
+            } else {
+                headerCheckbox.indeterminate = true;
+            }
+        }
+
+        // Exportar itens selecionados
+        function exportSelectedItems() {
+            if (selectedSoftwareIds.size === 0) return;
+            
+            var selectedData = sampleData.filter(function(item) {
+                return selectedSoftwareIds.has(item.id);
+            });
+            
+            var csv = convertToCSV(selectedData);
+            downloadCSV(csv, 'softwares_selecionados.csv');
+        }
+
+        // Excluir itens selecionados
+        function deleteSelectedItems() {
+            if (selectedSoftwareIds.size === 0) return;
+            
+            if (confirm('Tem certeza que deseja excluir ' + selectedSoftwareIds.size + ' item(s) selecionado(s)?')) {
+                // Aqui você implementaria a lógica de exclusão
+                console.log('Excluindo itens:', Array.from(selectedSoftwareIds));
+                
+                // Remover da lista
+                sampleData = sampleData.filter(function(item) {
+                    return !selectedSoftwareIds.has(item.id);
+                });
+                
+                selectedSoftwareIds.clear();
+                applyFilters();
+                showNotification('Itens excluídos com sucesso!', 'success');
+            }
+        }
+
+        // Converter dados para CSV
+        function convertToCSV(data) {
+            if (data.length === 0) return '';
+            
+            var headers = visibleColumns.map(function(col) {
+                return getColumnLabel(col);
+            });
+            
+            var csv = headers.join(',') + '\n';
+            
+            data.forEach(function(item) {
+                var row = visibleColumns.map(function(col) {
+                    return '"' + (item[col] || '').toString().replace(/"/g, '""') + '"';
+                });
+                csv += row.join(',') + '\n';
+            });
+            
+            return csv;
+        }
+
+        // Download CSV
+        function downloadCSV(csv, filename) {
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+
+        // Função para mostrar notificações
+        function showNotification(message, type) {
+            // Criar elemento de notificação
+            var notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm';
+            
+            var bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            notification.className += ' ' + bgColor + ' text-white';
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remover após 3 segundos
+            setTimeout(function() {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        // Configurar event listeners
+        function setupFilterAndSelectionEvents() {
+            // Clear all filters
+            var clearAllBtn = document.getElementById('clearAllFilters');
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', clearAllFilters);
+            }
+
+            // Toggle filters
+            var toggleBtn = document.getElementById('toggleFilters');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', toggleFilters);
+            }
+
+            // Select all
+            var selectAllCheckbox = document.getElementById('selectAll');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    selectAllItems(this.checked);
+                });
+            }
+
+            // Header select all
+            var headerSelectAll = document.getElementById('headerSelectAll');
+            if (headerSelectAll) {
+                headerSelectAll.addEventListener('change', function() {
+                    selectAllItems(this.checked);
+                });
+            }
+
+            // Export selected
+            var exportBtn = document.getElementById('exportSelected');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', exportSelectedItems);
+            }
+
+            // Delete selected
+            var deleteBtn = document.getElementById('deleteSelected');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', deleteSelectedItems);
+            }
+        }
+
         // Populate software table (softwares page)
         function populateSoftwaresPageTable() {
             console.log('populateSoftwaresPageTable called'); // Debug log
@@ -3410,29 +3768,34 @@
             
             tbody.innerHTML = '';
             
-            // Forçar uso dos dados originais para garantir que todos os softwares sejam exibidos
-            var dataToShow = sampleData;
+            // Usar dados filtrados se houver filtros ativos, senão usar dados originais
+            var dataToShow = Object.keys(softwareFilters).length > 0 ? filteredSoftwareData : sampleData;
             console.log('populateSoftwaresPageTable - sampleData length:', sampleData.length);
             console.log('populateSoftwaresPageTable - filteredSoftwareData length:', filteredSoftwareData.length);
             console.log('populateSoftwaresPageTable - dataToShow length:', dataToShow.length);
-            console.log('populateSoftwaresPageTable - sampleData content:', sampleData.map(item => item.servico));
+            console.log('populateSoftwaresPageTable - filtros ativos:', Object.keys(softwareFilters).length);
             
             console.log('populateSoftwaresPageTable - processing items, total:', dataToShow.length);
-            
-            // Teste: Verificar se todos os softwares estão sendo processados
-            if (dataToShow.length !== 6) {
-                console.warn('AVISO: Esperado 6 softwares, mas encontrado:', dataToShow.length);
-                console.warn('Softwares encontrados:', dataToShow.map(item => item.servico));
-            } else {
-                console.log('✅ SUCESSO: Todos os 6 softwares estão sendo processados');
-                console.log('Softwares:', dataToShow.map(item => item.servico));
-            }
             
             for (var i = 0; i < dataToShow.length; i++) {
                 var item = dataToShow[i];
                 console.log('populateSoftwaresPageTable - processing item', i + 1, ':', item.servico);
                 var row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition-colors';
+                
+                // Adicionar checkbox de seleção
+                var checkboxCell = document.createElement('td');
+                checkboxCell.className = 'px-4 py-3';
+                var checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'rounded border-gray-300 text-blue-600 focus:ring-blue-500';
+                checkbox.value = item.id;
+                checkbox.checked = selectedSoftwareIds.has(item.id);
+                checkbox.addEventListener('change', function() {
+                    selectItem(this.value, this.checked);
+                });
+                checkboxCell.appendChild(checkbox);
+                row.appendChild(checkboxCell);
                 
                 var criticidadeColor = {
                     'Alta': 'bg-red-100 text-red-800',
