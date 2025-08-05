@@ -17,6 +17,9 @@ RUN mkdir -p scripts
 COPY scripts/ ./scripts/
 RUN chmod +x scripts/*.sh || true
 
+# Create VERSION file (will be overridden by build script)
+RUN echo "1.0.0" > VERSION
+
 # Generate Prisma Client
 RUN npx prisma generate
 

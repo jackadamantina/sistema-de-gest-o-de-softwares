@@ -110,7 +110,14 @@ echo -e "${CYAN}=== Informações Adicionais ===${NC}"
 # Verificar containers Docker
 echo -e "${BLUE}🐳 Status dos containers:${NC}"
 if command -v docker-compose >/dev/null 2>&1; then
-    docker-compose ps
+    # Tentar diferentes arquivos de compose
+    if [ -f "docker-compose.production.yml" ]; then
+        docker-compose -f docker-compose.production.yml ps
+    elif [ -f "docker-compose.yml" ]; then
+        docker-compose ps
+    else
+        echo -e "${YELLOW}⚠️  Nenhum arquivo docker-compose encontrado${NC}"
+    fi
 else
     echo -e "${YELLOW}⚠️  docker-compose não encontrado${NC}"
 fi

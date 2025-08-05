@@ -40,7 +40,7 @@ if [ -f "backend/package.json" ]; then
     sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" backend/package.json
 fi
 
-# Atualizar package.json do frontend
+# Atualizar package.json do frontend (se existir)
 if [ -f "frontend/package.json" ]; then
     sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" frontend/package.json
 fi
@@ -57,7 +57,16 @@ echo "✅ Versão atualizada: $CURRENT_VERSION → $NEW_VERSION"
 read -p "Criar tag git v$NEW_VERSION? (s/n): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Ss]$ ]]; then
-    git add VERSION backend/package.json frontend/package.json
+    # Adicionar apenas arquivos que existem
+    FILES_TO_ADD="VERSION backend/package.json"
+    if [ -f "frontend/package.json" ]; then
+        FILES_TO_ADD="$FILES_TO_ADD frontend/package.json"
+    fi
+    if [ -f "index.html" ]; then
+        FILES_TO_ADD="$FILES_TO_ADD index.html"
+    fi
+    
+    git add $FILES_TO_ADD
     git commit -m "chore: bump version to $NEW_VERSION"
     git tag -a "v$NEW_VERSION" -m "Version $NEW_VERSION"
     echo "✅ Tag v$NEW_VERSION criada"

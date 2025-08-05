@@ -57,17 +57,35 @@ echo ""
 log_info "🔍 Verificando resultado do deploy..."
 sleep 5
 
-if docker-compose ps | grep -q "Up"; then
-    log_success "✅ Deploy concluído com sucesso!"
-    echo ""
-    echo -e "${BLUE}📊 Status dos containers:${NC}"
-    docker-compose ps
-    echo ""
-    echo -e "${BLUE}🔗 URLs:${NC}"
-    echo -e "${YELLOW}   Frontend:${NC} http://localhost:8088"
-    echo -e "${YELLOW}   Backend:${NC} http://localhost:3002"
+# Verificar containers usando o arquivo correto
+if [ -f "docker-compose.production.yml" ]; then
+    if docker-compose -f docker-compose.production.yml ps | grep -q "Up"; then
+        log_success "✅ Deploy concluído com sucesso!"
+        echo ""
+        echo -e "${BLUE}📊 Status dos containers:${NC}"
+        docker-compose -f docker-compose.production.yml ps
+        echo ""
+        echo -e "${BLUE}🔗 URLs:${NC}"
+        echo -e "${YELLOW}   Frontend:${NC} http://localhost:8089"
+        echo -e "${YELLOW}   Backend:${NC} http://localhost:3002"
+    else
+        log_error "❌ Deploy falhou - containers não estão rodando"
+        docker-compose -f docker-compose.production.yml ps
+        exit 1
+    fi
 else
-    log_error "❌ Deploy falhou - containers não estão rodando"
-    docker-compose ps
-    exit 1
+    if docker-compose ps | grep -q "Up"; then
+        log_success "✅ Deploy concluído com sucesso!"
+        echo ""
+        echo -e "${BLUE}📊 Status dos containers:${NC}"
+        docker-compose ps
+        echo ""
+        echo -e "${BLUE}🔗 URLs:${NC}"
+        echo -e "${YELLOW}   Frontend:${NC} http://localhost:8088"
+        echo -e "${YELLOW}   Backend:${NC} http://localhost:3002"
+    else
+        log_error "❌ Deploy falhou - containers não estão rodando"
+        docker-compose ps
+        exit 1
+    fi
 fi 

@@ -38,14 +38,14 @@ update_version_in_file() {
         echo -e "${BLUE}📝 Atualizando $file...${NC}"
         
         # Atualizar título da página
-        sed -i "s/<title>.*v[0-9]\+\.[0-9]\+\.[0-9]\+/<title>SoftwareHub - Sistema de Gestão de Softwares v${version}/g" "$file"
+        sed -i "s|<title>.*v[0-9]\+\.[0-9]\+\.[0-9]\+|<title>SoftwareHub - Sistema de Gestão de Softwares v${version}|g" "$file"
         
         # Atualizar referências de versão no conteúdo
-        sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/v${version}/g" "$file"
+        sed -i "s|v[0-9]\+\.[0-9]\+\.[0-9]\+|v${version}|g" "$file"
         
         # Atualizar data de última atualização
         CURRENT_DATE=$(date +"%d/%m/%Y")
-        sed -i "s/Última atualização: [0-9]\+\/[0-9]\+\/[0-9]\+/Última atualização: ${CURRENT_DATE}/g" "$file"
+        sed -i "s|Última atualização: [0-9]\+\/[0-9]\+\/[0-9]\+|Última atualização: ${CURRENT_DATE}|g" "$file"
         
         echo -e "${GREEN}✅ $file atualizado${NC}"
     fi

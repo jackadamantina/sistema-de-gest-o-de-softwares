@@ -194,6 +194,13 @@ echo -e "${GREEN}✓ Todas as portas estão livres${NC}"
 
 # Build e deploy
 echo -e "${YELLOW}6. Construindo e iniciando containers...${NC}"
+
+# Copiar arquivo VERSION para o diretório backend antes do build
+if [ -f "VERSION" ]; then
+    echo -e "${BLUE}📋 Copiando arquivo VERSION para o backend...${NC}"
+    cp VERSION backend/VERSION
+fi
+
 docker-compose -f docker-compose.production.yml build
 docker-compose -f docker-compose.production.yml up -d
 
