@@ -409,13 +409,13 @@
                                     <i class="fas fa-download mr-2"></i>
                                     Exportar CSV
                                 </button>
-                                <button id="toggleColumnSelector" class="btn-default px-4 py-2 rounded font-medium flex items-center" onclick="toggleColumnHandler(event)">
+                                <button id="toggleColumnSelector" class="btn-default px-4 py-2 rounded font-medium flex items-center">
                                     <i class="fas fa-columns mr-2"></i>
-                                    Colunas
+                                    Gerenciar Colunas
                                 </button>
-                                <button id="toggleAdvancedFilters" class="btn-default px-4 py-2 rounded font-medium flex items-center" onclick="toggleFiltersHandler(event)">
+                                <button id="toggleAdvancedFilters" class="btn-default px-4 py-2 rounded font-medium flex items-center">
                                     <i class="fas fa-filter mr-2"></i>
-                                    Filtros
+                                    Filtros Avançados
                                 </button>
                             </div>
                         </div>
@@ -649,22 +649,45 @@
                             </div>
                         </div>
                         
-                        <!-- Filtros Avançados -->
-                        <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <!-- Sistema de Filtros Avançados -->
+                        <div id="advancedFiltersPanel" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
                             <div class="flex justify-between items-center mb-4">
-                                <h4 class="text-sm font-semibold text-gray-700">Filtros Avançados</h4>
+                                <h4 class="text-sm font-semibold text-gray-700">Sistema de Filtros Avançados</h4>
                                 <div class="flex space-x-2">
-                                    <button id="clearAllFilters" class="btn-default px-3 py-1 rounded text-xs">
+                                    <button id="addFilterRule" class="btn-success px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-plus mr-1"></i>Adicionar Regra
+                                    </button>
+                                    <button id="clearAllAdvancedFilters" class="btn-default px-3 py-1 rounded text-xs">
                                         <i class="fas fa-times mr-1"></i>Limpar Todos
                                     </button>
-                                    <button id="toggleFilters" class="btn-primary px-3 py-1 rounded text-xs">
-                                        <i class="fas fa-filter mr-1"></i>Mostrar/Ocultar
+                                    <button id="applyAdvancedFilters" class="btn-primary px-3 py-1 rounded text-xs">
+                                        <i class="fas fa-filter mr-1"></i>Aplicar Filtros
                                     </button>
                                 </div>
                             </div>
                             
-                            <div id="filtersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                <!-- Filtros serão populados dinamicamente -->
+                            <!-- Operador Lógico Principal -->
+                            <div class="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
+                                <label class="flex items-center text-sm font-medium text-blue-800">
+                                    <span class="mr-2">Operador Lógico Principal:</span>
+                                    <select id="mainLogicalOperator" class="ml-2 border border-blue-300 rounded px-2 py-1 text-sm">
+                                        <option value="AND">AND (Todas as condições devem ser verdadeiras)</option>
+                                        <option value="OR">OR (Pelo menos uma condição deve ser verdadeira)</option>
+                                    </select>
+                                </label>
+                            </div>
+                            
+                            <!-- Container de Regras de Filtro -->
+                            <div id="filterRulesContainer">
+                                <!-- Regras serão adicionadas dinamicamente -->
+                            </div>
+                            
+                            <!-- Estatísticas dos Filtros -->
+                            <div class="mt-4 p-3 bg-gray-100 rounded text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span id="filterStats">Nenhum filtro aplicado</span>
+                                    <span id="filteredCount">Total: 0 itens</span>
+                                </div>
                             </div>
                         </div>
 
@@ -3301,11 +3324,11 @@
             
             currentPage = pageName;
             
-            // Inicializar filtros e seleção para a página de softwares
+            // Inicializar filtros avançados e seleção para a página de softwares
             if (pageName === 'softwares') {
                 setTimeout(function() {
-                    initializeFilters();
-                    setupFilterAndSelectionEvents();
+                    initializeAdvancedFilters();
+                    setupAdvancedFilterAndSelectionEvents();
                     populateSoftwaresPageTable();
                 }, 100);
             }
@@ -3408,40 +3431,128 @@
         var softwareFilters = {};
         var selectedSoftwareIds = new Set();
         var filteredSoftwareData = [];
+        var advancedFilterRules = [];
+        var filterRuleCounter = 0;
 
-        // Inicializar filtros
-        function initializeFilters() {
-            var filtersContainer = document.getElementById('filtersContainer');
-            if (!filtersContainer) return;
+        // Inicializar sistema de filtros avançados
+        function initializeAdvancedFilters() {
+            // Limpar regras existentes
+            advancedFilterRules = [];
+            filterRuleCounter = 0;
+            
+            // Adicionar primeira regra
+            addFilterRule();
+            
+            // Configurar operador lógico principal
+            var mainOperator = document.getElementById('mainLogicalOperator');
+            if (mainOperator) {
+                mainOperator.addEventListener('change', applyAdvancedFilters);
+            }
+        }
 
-            // Limpar container
-            filtersContainer.innerHTML = '';
+        // Adicionar nova regra de filtro
+        function addFilterRule() {
+            filterRuleCounter++;
+            var ruleId = 'filter_rule_' + filterRuleCounter;
+            
+            var ruleDiv = document.createElement('div');
+            ruleDiv.className = 'filter-rule mb-4 p-4 bg-white rounded border border-gray-200';
+            ruleDiv.id = ruleId;
+            
+            ruleDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <h5 class="text-sm font-medium text-gray-700">Regra ${filterRuleCounter}</h5>
+                    <button type="button" class="remove-filter-rule text-red-600 hover:text-red-800" onclick="removeFilterRule('${ruleId}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Campo</label>
+                        <select class="filter-field w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                            <option value="">Selecione um campo...</option>
+                            ${getAllFieldOptions()}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Operador</label>
+                        <select class="filter-operator w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                            <option value="contains">Contém</option>
+                            <option value="not_contains">Não contém</option>
+                            <option value="equals">É igual a</option>
+                            <option value="not_equals">É diferente de</option>
+                            <option value="starts_with">Começa com</option>
+                            <option value="ends_with">Termina com</option>
+                            <option value="is_empty">Está vazio</option>
+                            <option value="is_not_empty">Não está vazio</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Valor</label>
+                        <input type="text" class="filter-value w-full border border-gray-300 rounded px-2 py-1 text-xs" placeholder="Digite o valor...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Conectivo</label>
+                        <select class="filter-connector w-full border border-gray-300 rounded px-2 py-1 text-xs">
+                            <option value="AND">E (AND)</option>
+                            <option value="OR">OU (OR)</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            
+            var container = document.getElementById('filterRulesContainer');
+            if (container) {
+                container.appendChild(ruleDiv);
+                advancedFilterRules.push(ruleId);
+            }
+        }
 
-            // Criar filtros para cada coluna visível
-            visibleColumns.forEach(function(column) {
-                var filterDiv = document.createElement('div');
-                filterDiv.className = 'flex flex-col';
-                
-                var label = document.createElement('label');
-                label.className = 'block text-xs font-medium text-gray-700 mb-1';
-                label.textContent = getColumnLabel(column);
-                
-                var input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'w-full border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500';
-                input.placeholder = 'Filtrar ' + getColumnLabel(column);
-                input.id = 'filter_' + column;
-                
-                // Adicionar evento de filtro
-                input.addEventListener('input', function() {
-                    softwareFilters[column] = this.value.toLowerCase();
-                    applyFilters();
-                });
-                
-                filterDiv.appendChild(label);
-                filterDiv.appendChild(input);
-                filtersContainer.appendChild(filterDiv);
-            });
+        // Remover regra de filtro
+        function removeFilterRule(ruleId) {
+            var ruleElement = document.getElementById(ruleId);
+            if (ruleElement) {
+                ruleElement.remove();
+                var index = advancedFilterRules.indexOf(ruleId);
+                if (index > -1) {
+                    advancedFilterRules.splice(index, 1);
+                }
+            }
+        }
+
+        // Obter opções de todos os campos disponíveis
+        function getAllFieldOptions() {
+            var allFields = {
+                'servico': 'Serviço/Plataforma',
+                'description': 'Descrição',
+                'url': 'URL',
+                'hosting': 'Hosting',
+                'acesso': 'Acesso',
+                'responsible': 'Responsável',
+                'namedUser': 'Usuário Nomeado',
+                'integratedUser': 'Usuário Integrado',
+                'sso': 'SSO',
+                'onboarding': 'Criação Onboarding',
+                'offboarding': 'Offboarding',
+                'offboardingType': 'Tipo Offboarding',
+                'affectedTeams': 'Times Afetados',
+                'logsInfo': 'Informações Logs',
+                'logsRetention': 'Retenção Logs',
+                'logs': 'Status Logs',
+                'mfaPolicy': 'Política MFA',
+                'mfa': 'MFA',
+                'mfaSMS': 'MFA por SMS',
+                'bloqueio': 'Bloqueio Regional',
+                'passwordPolicy': 'Política de Senha',
+                'sensitiveData': 'Dados Sensíveis',
+                'criticidade': 'Criticidade'
+            };
+            
+            var options = '';
+            for (var field in allFields) {
+                options += `<option value="${field}">${allFields[field]}</option>`;
+            }
+            return options;
         }
 
         // Obter label da coluna
@@ -3474,41 +3585,117 @@
             return columnLabels[column] || column;
         }
 
-        // Aplicar filtros
-        function applyFilters() {
-            filteredSoftwareData = sampleData.filter(function(item) {
-                for (var column in softwareFilters) {
-                    if (softwareFilters[column]) {
-                        var value = String(item[column] || '').toLowerCase();
-                        if (!value.includes(softwareFilters[column])) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            });
+        // Aplicar filtros avançados
+        function applyAdvancedFilters() {
+            var rules = collectFilterRules();
+            var mainOperator = document.getElementById('mainLogicalOperator').value;
             
+            if (rules.length === 0) {
+                filteredSoftwareData = sampleData;
+            } else {
+                filteredSoftwareData = sampleData.filter(function(item) {
+                    if (mainOperator === 'AND') {
+                        // Todas as regras devem ser verdadeiras
+                        return rules.every(function(rule) {
+                            return evaluateFilterRule(item, rule);
+                        });
+                    } else {
+                        // Pelo menos uma regra deve ser verdadeira
+                        return rules.some(function(rule) {
+                            return evaluateFilterRule(item, rule);
+                        });
+                    }
+                });
+            }
+            
+            updateFilterStats(rules);
             populateSoftwaresPageTable();
             updateSelectedCount();
         }
 
-        // Limpar todos os filtros
-        function clearAllFilters() {
-            softwareFilters = {};
-            var filterInputs = document.querySelectorAll('#filtersContainer input');
-            filterInputs.forEach(function(input) {
-                input.value = '';
+        // Coletar regras de filtro
+        function collectFilterRules() {
+            var rules = [];
+            var ruleElements = document.querySelectorAll('.filter-rule');
+            
+            ruleElements.forEach(function(ruleElement) {
+                var field = ruleElement.querySelector('.filter-field').value;
+                var operator = ruleElement.querySelector('.filter-operator').value;
+                var value = ruleElement.querySelector('.filter-value').value;
+                var connector = ruleElement.querySelector('.filter-connector').value;
+                
+                if (field && operator) {
+                    rules.push({
+                        field: field,
+                        operator: operator,
+                        value: value,
+                        connector: connector
+                    });
+                }
             });
-            applyFilters();
+            
+            return rules;
         }
 
-        // Toggle filtros
-        function toggleFilters() {
-            var container = document.getElementById('filtersContainer');
-            if (container.style.display === 'none') {
-                container.style.display = 'grid';
+        // Avaliar uma regra de filtro
+        function evaluateFilterRule(item, rule) {
+            var fieldValue = String(item[rule.field] || '');
+            var filterValue = String(rule.value || '');
+            
+            switch (rule.operator) {
+                case 'contains':
+                    return fieldValue.toLowerCase().includes(filterValue.toLowerCase());
+                case 'not_contains':
+                    return !fieldValue.toLowerCase().includes(filterValue.toLowerCase());
+                case 'equals':
+                    return fieldValue.toLowerCase() === filterValue.toLowerCase();
+                case 'not_equals':
+                    return fieldValue.toLowerCase() !== filterValue.toLowerCase();
+                case 'starts_with':
+                    return fieldValue.toLowerCase().startsWith(filterValue.toLowerCase());
+                case 'ends_with':
+                    return fieldValue.toLowerCase().endsWith(filterValue.toLowerCase());
+                case 'is_empty':
+                    return fieldValue.trim() === '';
+                case 'is_not_empty':
+                    return fieldValue.trim() !== '';
+                default:
+                    return true;
+            }
+        }
+
+        // Atualizar estatísticas dos filtros
+        function updateFilterStats(rules) {
+            var statsElement = document.getElementById('filterStats');
+            var countElement = document.getElementById('filteredCount');
+            
+            if (rules.length === 0) {
+                statsElement.textContent = 'Nenhum filtro aplicado';
             } else {
-                container.style.display = 'none';
+                var mainOperator = document.getElementById('mainLogicalOperator').value;
+                statsElement.textContent = `${rules.length} regra(s) aplicada(s) com operador ${mainOperator}`;
+            }
+            
+            countElement.textContent = `Total: ${filteredSoftwareData.length} itens`;
+        }
+
+        // Limpar todos os filtros avançados
+        function clearAllAdvancedFilters() {
+            var container = document.getElementById('filterRulesContainer');
+            if (container) {
+                container.innerHTML = '';
+            }
+            advancedFilterRules = [];
+            filterRuleCounter = 0;
+            addFilterRule(); // Adicionar regra vazia
+            applyAdvancedFilters();
+        }
+
+        // Toggle painel de filtros avançados
+        function toggleAdvancedFiltersPanel() {
+            var panel = document.getElementById('advancedFiltersPanel');
+            if (panel) {
+                panel.classList.toggle('hidden');
             }
         }
 
@@ -3669,21 +3856,36 @@
             }, 3000);
         }
 
-        // Configurar event listeners
-        function setupFilterAndSelectionEvents() {
-            // Clear all filters
-            var clearAllBtn = document.getElementById('clearAllFilters');
+        // Configurar event listeners para filtros avançados e seleção
+        function setupAdvancedFilterAndSelectionEvents() {
+            // Botões de toggle dos painéis
+            var toggleColumnBtn = document.getElementById('toggleColumnSelector');
+            if (toggleColumnBtn) {
+                toggleColumnBtn.addEventListener('click', toggleColumnHandler);
+            }
+
+            var toggleFiltersBtn = document.getElementById('toggleAdvancedFilters');
+            if (toggleFiltersBtn) {
+                toggleFiltersBtn.addEventListener('click', toggleFiltersHandler);
+            }
+
+            // Botões de filtros avançados
+            var addFilterBtn = document.getElementById('addFilterRule');
+            if (addFilterBtn) {
+                addFilterBtn.addEventListener('click', addFilterRule);
+            }
+
+            var clearAllBtn = document.getElementById('clearAllAdvancedFilters');
             if (clearAllBtn) {
-                clearAllBtn.addEventListener('click', clearAllFilters);
+                clearAllBtn.addEventListener('click', clearAllAdvancedFilters);
             }
 
-            // Toggle filters
-            var toggleBtn = document.getElementById('toggleFilters');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', toggleFilters);
+            var applyFiltersBtn = document.getElementById('applyAdvancedFilters');
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', applyAdvancedFilters);
             }
 
-            // Select all
+            // Botões de seleção
             var selectAllCheckbox = document.getElementById('selectAll');
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
@@ -3691,7 +3893,6 @@
                 });
             }
 
-            // Header select all
             var headerSelectAll = document.getElementById('headerSelectAll');
             if (headerSelectAll) {
                 headerSelectAll.addEventListener('change', function() {
@@ -3699,17 +3900,30 @@
                 });
             }
 
-            // Export selected
+            // Botões de ação
             var exportBtn = document.getElementById('exportSelected');
             if (exportBtn) {
                 exportBtn.addEventListener('click', exportSelectedItems);
             }
 
-            // Delete selected
             var deleteBtn = document.getElementById('deleteSelected');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', deleteSelectedItems);
             }
+        }
+
+        // Funções para toggle dos painéis
+        function toggleColumnHandler(event) {
+            event.preventDefault();
+            var columnSelector = document.getElementById('columnSelector');
+            if (columnSelector) {
+                columnSelector.classList.toggle('hidden');
+            }
+        }
+
+        function toggleFiltersHandler(event) {
+            event.preventDefault();
+            toggleAdvancedFiltersPanel();
         }
 
         // Populate software table (softwares page)
@@ -3768,12 +3982,12 @@
             
             tbody.innerHTML = '';
             
-            // Usar dados filtrados se houver filtros ativos, senão usar dados originais
-            var dataToShow = Object.keys(softwareFilters).length > 0 ? filteredSoftwareData : sampleData;
+            // Usar dados filtrados se houver regras de filtro ativas, senão usar dados originais
+            var dataToShow = advancedFilterRules.length > 0 && filteredSoftwareData.length > 0 ? filteredSoftwareData : sampleData;
             console.log('populateSoftwaresPageTable - sampleData length:', sampleData.length);
             console.log('populateSoftwaresPageTable - filteredSoftwareData length:', filteredSoftwareData.length);
             console.log('populateSoftwaresPageTable - dataToShow length:', dataToShow.length);
-            console.log('populateSoftwaresPageTable - filtros ativos:', Object.keys(softwareFilters).length);
+            console.log('populateSoftwaresPageTable - regras de filtro ativas:', advancedFilterRules.length);
             
             console.log('populateSoftwaresPageTable - processing items, total:', dataToShow.length);
             
