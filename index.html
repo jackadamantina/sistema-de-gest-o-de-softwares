@@ -345,8 +345,11 @@
                             </div>
                             <div>
                                 <h3 class="text-lg font-semibold text-blue-900">Informações da Versão</h3>
-                                <p class="text-sm text-blue-700">SoftwareHub v1.0.0 - Última atualização: 04/08/2025</p>
+                                <p class="text-sm text-blue-700">SoftwareHub <span id="current-version">v1.0.0</span> - Última atualização: <span id="last-update">04/08/2025</span></p>
                                 <p class="text-xs text-blue-600 mt-1">✅ API funcionando | ✅ 6 softwares cadastrados | ✅ Sistema otimizado</p>
+                                <button onclick="checkSystemVersion()" class="mt-2 text-blue-600 hover:text-blue-800 text-xs flex items-center">
+                                    <i class="fas fa-info-circle mr-1"></i>Verificar Versão Atual
+                                </button>
                             </div>
                         </div>
                         <div class="text-right">
@@ -1152,6 +1155,8 @@
         window.currentPage = 'dashboard';
         window.isLoggedIn = false;
         window.authToken = null;
+        window.systemVersion = '1.0.0';
+        window.systemInfo = {};
         
         // Debug function to check token state
         function debugTokenState() {
@@ -1190,6 +1195,53 @@
             console.log('getAuthHeaders - Headers keys:', Object.keys(headers));
             return headers;
         }
+        // Função para verificar versão do sistema
+        async function checkSystemVersion() {
+            try {
+                console.log('=== VERIFICANDO VERSÃO DO SISTEMA ===');
+                
+                const response = await fetch('http://localhost:3002/version', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Informações do sistema:', data);
+                
+                window.systemVersion = data.version;
+                window.systemInfo = data;
+                
+                // Atualizar elementos da interface
+                const versionElement = document.getElementById('current-version');
+                if (versionElement) {
+                    versionElement.textContent = `v${data.version}`;
+                }
+                
+                // Atualizar data de última atualização
+                const lastUpdateElement = document.getElementById('last-update');
+                if (lastUpdateElement && data.buildDate) {
+                    const buildDate = new Date(data.buildDate);
+                    lastUpdateElement.textContent = buildDate.toLocaleDateString('pt-BR');
+                }
+                
+                console.log('=== VERSÃO DO SISTEMA ATUALIZADA ===');
+                console.log('Versão atual:', data.version);
+                console.log('Data do build:', data.buildDate);
+                
+                return data;
+            } catch (error) {
+                console.error('=== ERRO AO VERIFICAR VERSÃO ===');
+                console.error('Erro:', error);
+                return null;
+            }
+        }
+        
         // API Functions
         async function autoLogin() {
             try {
@@ -1586,6 +1638,10 @@
             try {
                 console.log('Inicializando aplicação...');
                 debugTokenState();
+                
+                // Verificar versão do sistema primeiro
+                console.log('Verificando versão do sistema...');
+                await checkSystemVersion();
                 
                 // Se não estiver logado, mostrar tela de login
                 if (!window.isLoggedIn) {

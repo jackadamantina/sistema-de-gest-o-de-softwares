@@ -23,6 +23,13 @@ CURRENT_VERSION=$(cat VERSION 2>/dev/null || echo "1.0.0")
 echo -e "${BLUE}Versão atual: ${YELLOW}v${CURRENT_VERSION}${NC}"
 echo ""
 
+# Verificar se há uma versão rodando
+echo -e "${BLUE}🔍 Verificando versão em execução...${NC}"
+if [ -f "scripts/check-version.sh" ]; then
+    ./scripts/check-version.sh
+    echo ""
+fi
+
 # Verificar se está rodando como root
 if [ "$EUID" -ne 0 ]; then 
     echo -e "${RED}Por favor, execute como root (sudo)${NC}"

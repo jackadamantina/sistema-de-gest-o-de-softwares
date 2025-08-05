@@ -6,6 +6,8 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
 // Routes
 import authRoutes from './routes/auth';
@@ -65,6 +67,33 @@ app.get('/health', async (_req, res) => {
       timestamp: new Date().toISOString(),
       database: 'disconnected',
       error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Version endpoint
+app.get('/version', (_req, res) => {
+  try {
+    // Ler versão do arquivo VERSION
+    const versionPath = path.join(__dirname, '../../VERSION');
+    const version = fs.existsSync(versionPath) ? fs.readFileSync(versionPath, 'utf8').trim() : '1.0.0';
+    
+    // Informações do sistema
+    const systemInfo = {
+      version: version,
+      buildDate: new Date().toISOString(),
+      nodeVersion: process.version,
+      platform: process.platform,
+      uptime: process.uptime(),
+      memoryUsage: process.memoryUsage(),
+      environment: process.env.NODE_ENV || 'development'
+    };
+    
+    res.status(200).json(systemInfo);
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to get version information',
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });

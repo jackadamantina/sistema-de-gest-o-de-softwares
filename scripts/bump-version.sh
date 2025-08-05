@@ -45,6 +45,12 @@ if [ -f "frontend/package.json" ]; then
     sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" frontend/package.json
 fi
 
+# Atualizar versão no frontend automaticamente
+if [ -f "scripts/update-frontend-version.sh" ]; then
+    echo "🔄 Atualizando versão no frontend..."
+    ./scripts/update-frontend-version.sh
+fi
+
 echo "✅ Versão atualizada: $CURRENT_VERSION → $NEW_VERSION"
 
 # Criar tag git
