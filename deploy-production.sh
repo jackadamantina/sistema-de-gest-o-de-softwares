@@ -128,7 +128,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Copiar estrutura mantendo permissões
-cp -r "$PROJECT_DIR"/{backend,frontend,scripts,*.yml,*.html,*.md} "$INSTALL_DIR/" 2>/dev/null || true
+cp -r "$PROJECT_DIR"/backend "$INSTALL_DIR/" 2>/dev/null || true
+cp -r "$PROJECT_DIR"/frontend "$INSTALL_DIR/" 2>/dev/null || true
+cp -r "$PROJECT_DIR"/scripts "$INSTALL_DIR/" 2>/dev/null || true
+cp "$PROJECT_DIR"/*.yml "$INSTALL_DIR/" 2>/dev/null || true
+cp "$PROJECT_DIR"/*.html "$INSTALL_DIR/" 2>/dev/null || true
+cp "$PROJECT_DIR"/*.md "$INSTALL_DIR/" 2>/dev/null || true
+cp "$PROJECT_DIR"/VERSION "$INSTALL_DIR/" 2>/dev/null || true
 
 # Verificar se docker-compose.production.yml existe
 if [ ! -f "$INSTALL_DIR/docker-compose.production.yml" ]; then
