@@ -54,6 +54,7 @@ log_info "📋 Passo 3/6: Copiando arquivo VERSION..."
 if [ -f "VERSION" ]; then
     cp VERSION backend/VERSION
     log_success "Arquivo VERSION copiado para backend/"
+    echo -e "${BLUE}   Conteúdo: $(cat VERSION)${NC}"
 else
     log_warning "Arquivo VERSION não encontrado"
 fi

@@ -199,6 +199,9 @@ echo -e "${YELLOW}6. Construindo e iniciando containers...${NC}"
 if [ -f "VERSION" ]; then
     echo -e "${BLUE}📋 Copiando arquivo VERSION para o backend...${NC}"
     cp VERSION backend/VERSION
+    echo -e "${BLUE}   Versão: $(cat VERSION)${NC}"
+else
+    echo -e "${YELLOW}⚠️  Arquivo VERSION não encontrado${NC}"
 fi
 
 docker-compose -f docker-compose.production.yml build
