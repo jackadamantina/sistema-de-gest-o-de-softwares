@@ -45,15 +45,30 @@ if curl -s --connect-timeout 5 "${VERSION_ENDPOINT}" > /dev/null 2>&1; then
     RESPONSE=$(curl -s "${VERSION_ENDPOINT}")
     
     if [ $? -eq 0 ]; then
+        # Debug: mostrar resposta bruta
+        echo -e "${BLUE}🔍 Resposta da API: ${YELLOW}${RESPONSE}${NC}"
+        
         # Extrair versão da resposta JSON (usando jq se disponível, senão grep)
         if command -v jq >/dev/null 2>&1; then
-            RUNNING_VERSION=$(echo "$RESPONSE" | jq -r '.version')
-            BUILD_DATE=$(echo "$RESPONSE" | jq -r '.buildDate')
-            UPTIME=$(echo "$RESPONSE" | jq -r '.uptime')
+            RUNNING_VERSION=$(echo "$RESPONSE" | jq -r '.version // "null"')
+            BUILD_DATE=$(echo "$RESPONSE" | jq -r '.buildDate // "null"')
+            UPTIME=$(echo "$RESPONSE" | jq -r '.uptime // "null"')
         else
-            RUNNING_VERSION=$(echo "$RESPONSE" | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
-            BUILD_DATE=$(echo "$RESPONSE" | grep -o '"buildDate":"[^"]*"' | cut -d'"' -f4)
-            UPTIME=$(echo "$RESPONSE" | grep -o '"uptime":[0-9.]*' | cut -d':' -f2)
+            # Fallback para grep - mais robusto
+            RUNNING_VERSION=$(echo "$RESPONSE" | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || echo "null")
+            BUILD_DATE=$(echo "$RESPONSE" | grep -o '"buildDate":"[^"]*"' | cut -d'"' -f4 || echo "null")
+            UPTIME=$(echo "$RESPONSE" | grep -o '"uptime":[0-9.]*' | cut -d':' -f2 || echo "null")
+        fi
+        
+        # Verificar se extraiu corretamente
+        if [ "$RUNNING_VERSION" = "null" ] || [ -z "$RUNNING_VERSION" ]; then
+            echo -e "${RED}❌ Erro ao extrair versão da resposta da API${NC}"
+            echo -e "${YELLOW}💡 Tentando método alternativo...${NC}"
+            
+            # Método alternativo usando sed
+            RUNNING_VERSION=$(echo "$RESPONSE" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+            BUILD_DATE=$(echo "$RESPONSE" | sed -n 's/.*"buildDate":"\([^"]*\)".*/\1/p')
+            UPTIME=$(echo "$RESPONSE" | sed -n 's/.*"uptime":\([0-9.]*\).*/\1/p')
         fi
         
         echo -e "${BLUE}🖥️  Versão em execução: ${YELLOW}v${RUNNING_VERSION}${NC}"

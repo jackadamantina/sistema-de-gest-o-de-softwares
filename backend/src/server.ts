@@ -74,9 +74,35 @@ app.get('/health', async (_req, res) => {
 // Version endpoint
 app.get('/version', (_req, res) => {
   try {
-    // Ler versão do arquivo VERSION
-    const versionPath = path.join(__dirname, '../../VERSION');
-    const version = fs.existsSync(versionPath) ? fs.readFileSync(versionPath, 'utf8').trim() : '1.0.0';
+    // Tentar múltiplos caminhos para o arquivo VERSION
+    const possiblePaths = [
+      path.join(__dirname, '../../VERSION'),
+      path.join(__dirname, '../../../VERSION'),
+      path.join(process.cwd(), 'VERSION'),
+      '/opt/sistema-gestao-softwares/VERSION'
+    ];
+    
+    let version = '1.0.0';
+    let versionPath = null;
+    
+    for (const vPath of possiblePaths) {
+      if (fs.existsSync(vPath)) {
+        try {
+          version = fs.readFileSync(vPath, 'utf8').trim();
+          versionPath = vPath;
+          console.log(`✅ Versão lida de: ${vPath} = ${version}`);
+          break;
+        } catch (readError) {
+          console.error(`❌ Erro ao ler versão de ${vPath}:`, readError);
+        }
+      } else {
+        console.log(`⚠️  Arquivo VERSION não encontrado em: ${vPath}`);
+      }
+    }
+    
+    if (!versionPath) {
+      console.warn('⚠️  Nenhum arquivo VERSION encontrado, usando versão padrão');
+    }
     
     // Informações do sistema
     const systemInfo = {
@@ -86,11 +112,14 @@ app.get('/version', (_req, res) => {
       platform: process.platform,
       uptime: process.uptime(),
       memoryUsage: process.memoryUsage(),
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
+      versionPath: versionPath || 'not found'
     };
     
+    console.log(`📊 Endpoint /version chamado - versão: ${version}`);
     res.status(200).json(systemInfo);
   } catch (error) {
+    console.error('❌ Erro no endpoint /version:', error);
     res.status(500).json({
       error: 'Failed to get version information',
       message: error instanceof Error ? error.message : 'Unknown error'
