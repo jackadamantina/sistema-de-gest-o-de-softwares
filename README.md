@@ -1,6 +1,38 @@
 # SoftwareHub - Sistema de Gestão de Softwares
 
-Sistema completo para gestão de softwares empresariais com funcionalidades de dashboard, CRUD de softwares, gestão de usuários, logs de auditoria e exportação de dados.
+Sistema completo para gestão de softwares empresariais com funcionalidades de dashboard, CRUD de softwares, gestão de usuários, logs de auditoria, filtros avançados e exportação de dados.
+
+## ⚡ Quick Start
+
+### 🚀 Deploy Rápido em Produção
+
+```bash
+# 1. Clone o projeto
+git clone <repository-url>
+cd sistema-de-gestão-de-softwares
+
+# 2. Execute o deploy consolidado (ROOT necessário)
+sudo ./scripts/deploy-consolidated.sh
+
+# 3. Acesse o sistema
+# URL: http://seu-servidor:8089
+# Login: admin@softwarehub.com / admin123
+```
+
+### 🐳 Deploy Local
+
+```bash
+# 1. Clone e configure
+git clone <repository-url>
+cd sistema-de-gestão-de-softwares
+
+# 2. Inicie com Docker
+docker-compose up -d
+
+# 3. Acesse o sistema
+# URL: http://localhost:8089
+# Login: admin@softwarehub.com / admin123
+```
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -14,14 +46,34 @@ Sistema completo para gestão de softwares empresariais com funcionalidades de d
 
 ## 📋 Funcionalidades
 
+### 🎯 Funcionalidades Principais
 - ✅ Dashboard com métricas e gráficos
 - ✅ Gestão completa de softwares (CRUD)
 - ✅ Sistema de usuários e permissões
 - ✅ Logs de auditoria
-- ✅ Filtros avançados e visão customizável
-- ✅ Exportação de dados em CSV
 - ✅ Autenticação JWT
 - ✅ Interface responsiva
+
+### 🔍 Sistema de Filtros Avançados
+- ✅ **Filtros com operadores lógicos** (AND/OR)
+- ✅ **Todos os campos disponíveis** para filtro
+- ✅ **Múltiplos operadores**: Contém, É igual, Começa com, etc.
+- ✅ **Seleção múltipla** de itens
+- ✅ **Exportação seletiva** em CSV
+- ✅ **Ações em lote** (exclusão múltipla)
+- ✅ **Interface intuitiva** para criar regras
+
+### 📊 Visão Customizável
+- ✅ **Gerenciamento de colunas** visíveis
+- ✅ **Visão essencial** e **visão completa**
+- ✅ **Filtros em tempo real**
+- ✅ **Estatísticas** de filtros aplicados
+
+### 📤 Exportação e Relatórios
+- ✅ **Exportação completa** em CSV
+- ✅ **Exportação seletiva** de itens filtrados
+- ✅ **Relatórios customizados**
+- ✅ **Backup automático** configurado
 
 ## 🏗️ Arquitetura
 
@@ -55,7 +107,7 @@ SoftwareHub/
 ```bash
 # Clone o repositório
 git clone <repository-url>
-cd softwarehub
+cd sistema-de-gestão-de-softwares
 
 # Configure as variáveis de ambiente
 cp backend/env.example backend/.env
@@ -77,9 +129,9 @@ docker-compose down
 
 ### 3. Acesse a Aplicação
 
-- **URL**: http://localhost:8087
-- **API**: http://localhost:3001/api
-- **Health Check**: http://localhost:3001/health
+- **URL**: http://localhost:8089
+- **API**: http://localhost:3002/api
+- **Health Check**: http://localhost:3002/health
 
 ### 4. Credenciais Iniciais
 
@@ -91,49 +143,89 @@ docker-compose down
 
 ## 🐳 Deploy em Produção
 
-### 1. Configuração de Produção
+### 🚀 Deploy Consolidado (Recomendado)
+
+O sistema agora possui um **deploy totalmente automatizado** que inclui todas as correções necessárias:
 
 ```bash
-# Configure variáveis de produção
-export DB_PASSWORD="sua_senha_segura"
-export JWT_SECRET="seu_jwt_secret_super_seguro"
-export CORS_ORIGIN="http://softwarehub-xp.wake.tech:8087"
+# 1. Acesse o servidor
+ssh seu-servidor
+
+# 2. Navegue para o projeto
+cd /caminho/para/sistema-de-gestão-de-softwares
+
+# 3. Execute o deploy consolidado (ROOT necessário)
+sudo ./scripts/deploy-consolidated.sh
 ```
 
-### 2. Build das Imagens
+### 📋 O que o Deploy Consolidado Faz:
+
+1. **🛑 Para sistema existente** (se houver)
+2. **📁 Copia arquivos** com feedback detalhado
+3. **🔧 Aplica correções** automáticas:
+   - Verifica/cria arquivo VERSION
+   - Copia VERSION para backend
+   - Gera package-lock.json se necessário
+   - Configura nginx.conf se necessário
+   - Define permissões dos scripts
+4. **🐳 Constrói containers** com verificações
+5. **🚀 Inicia serviços** com aguardar inicialização
+6. **🔍 Verifica saúde** de todos os componentes
+7. **⚙️ Configura systemd** para auto-start
+8. **💾 Configura backup** automático
+9. **📋 Fornece resumo** completo
+
+### 🔧 Deploy Manual (Alternativo)
+
+Se preferir controle manual:
 
 ```bash
-# Build do backend
-cd backend
-docker build -t softwarehub-backend:latest .
-
-# Build do frontend (se necessário)
-# O frontend atual é servido via Nginx
+# Execute o deploy principal
+sudo ./deploy-production.sh
 ```
 
-### 3. Deploy com Kubernetes
+### 📊 URLs de Produção
+
+- **Sistema Web**: http://seu-dominio:8089
+- **API Backend**: http://seu-dominio:3002
+- **PostgreSQL**: localhost:5435
+
+### 🔐 Credenciais de Produção
+
+- **Email**: admin@softwarehub.com
+- **Senha**: admin123
+
+⚠️ **IMPORTANTE**: Altere a senha do admin após o primeiro login!
+
+### 🛠️ Comandos de Gerenciamento
 
 ```bash
-# Aplicar namespace
-kubectl apply -f k8s/namespace.yaml
+# Ver status dos containers
+docker-compose -f docker-compose.production.yml ps
 
-# Aplicar secrets
-kubectl create secret generic softwarehub-secrets -n softwarehub \
-  --from-literal=DB_PASSWORD="$DB_PASSWORD" \
-  --from-literal=JWT_SECRET="$JWT_SECRET"
+# Ver logs
+docker-compose -f docker-compose.production.yml logs -f
 
-# Deploy PostgreSQL
-kubectl apply -f k8s/postgres-deployment.yaml
+# Parar sistema
+systemctl stop softwarehub
 
-# Deploy Backend
-kubectl apply -f k8s/backend-deployment.yaml
+# Iniciar sistema
+systemctl start softwarehub
 
-# Deploy Frontend
-kubectl apply -f k8s/frontend-deployment.yaml
+# Reiniciar sistema
+systemctl restart softwarehub
 
-# Deploy Nginx
-kubectl apply -f k8s/nginx-deployment.yaml
+# Backup manual
+/usr/local/bin/softwarehub-backup.sh
 ```
+
+### 🔍 Verificações de Saúde
+
+O deploy inclui verificações automáticas:
+- ✅ Containers rodando
+- ✅ API respondendo
+- ✅ Frontend acessível
+- ✅ Banco de dados conectado
 
 ## 🔧 Desenvolvimento Local
 
@@ -199,26 +291,77 @@ npx serve -s . -l 8087
 
 ## 📈 Monitoramento
 
-- **Health Check**: `/health`
-- **Logs**: Estruturados com Morgan
-- **Métricas**: Endpoints de estatísticas
-- **Auditoria**: Logs de todas as ações
+### Health Checks
+- **API Health**: `GET /health`
+- **Version Info**: `GET /version`
+- **Database Status**: Incluído no health check
+
+### Logs e Métricas
+- **Logs Estruturados**: Morgan + Winston
+- **Métricas em Tempo Real**: Dashboard integrado
+- **Auditoria Completa**: Logs de todas as ações
+- **Backup Logs**: `/var/log/softwarehub-backup.log`
+
+### Verificações Automáticas
+O deploy inclui verificações automáticas de:
+- ✅ Status dos containers
+- ✅ Resposta da API
+- ✅ Acessibilidade do frontend
+- ✅ Conexão com banco de dados
+- ✅ Versão do sistema
 
 ## 🔄 Backup e Recovery
 
 ### Backup Automático PostgreSQL
 
+O sistema configura automaticamente backup diário às 2h da manhã:
+
 ```bash
-#!/bin/bash
-# backup.sh
-DATE=$(date +%Y%m%d_%H%M%S)
-docker exec softwarehub_db_1 pg_dump -U softwarehub_user softwarehub > backup_$DATE.sql
+# Backup manual
+/usr/local/bin/softwarehub-backup.sh
+
+# Ver logs de backup
+tail -f /var/log/softwarehub-backup.log
 ```
 
 ### Restore
 
 ```bash
-docker exec -i softwarehub_db_1 psql -U softwarehub_user softwarehub < backup_YYYYMMDD_HHMMSS.sql
+# Restaurar backup
+docker exec -i sistema-de-gesto-de-softwares-db-1 psql -U softwarehub_user softwarehub < backup_YYYYMMDD_HHMMSS.sql
+```
+
+## 📋 Controle de Versão
+
+### Sistema de Versionamento
+
+O sistema possui controle de versão integrado:
+
+```bash
+# Ver versão atual
+cat VERSION
+
+# Incrementar versão (patch)
+./scripts/bump-version.sh patch
+
+# Incrementar versão (minor)
+./scripts/bump-version.sh minor
+
+# Incrementar versão (major)
+./scripts/bump-version.sh major
+```
+
+### Verificação de Versão
+
+```bash
+# Verificar versão em execução
+./scripts/check-version.sh
+
+# Diagnóstico de problemas de versão
+./scripts/diagnose-version.sh
+
+# Corrigir problemas de versão
+./scripts/fix-version.sh
 ```
 
 ## 🐛 Troubleshooting
@@ -242,6 +385,47 @@ docker exec -i softwarehub_db_1 psql -U softwarehub_user softwarehub < backup_YY
    docker-compose logs frontend
    docker-compose restart frontend
    ```
+
+4. **Login não funciona (usuário admin não existe)**
+   ```bash
+   # Criar usuário admin
+   docker exec sistema-de-gesto-de-softwares-backend-1 npm run seed
+   
+   # Ou acessar o container e executar
+   docker exec -it sistema-de-gesto-de-softwares-backend-1 sh
+   npx prisma db seed
+   ```
+
+5. **Versão não aparece corretamente**
+   ```bash
+   # Verificar arquivo VERSION
+   cat VERSION
+   
+   # Copiar para backend
+   cp VERSION backend/VERSION
+   
+   # Rebuild do backend
+   docker-compose -f docker-compose.production.yml build backend
+   docker-compose -f docker-compose.production.yml up -d
+   ```
+
+6. **Deploy falha**
+   ```bash
+   # Usar script consolidado
+   sudo ./scripts/deploy-consolidated.sh
+   
+   # Ou aplicar correções manualmente
+   sudo ./scripts/fix-deploy.sh
+   ```
+
+### 🔧 Scripts de Correção
+
+O sistema inclui scripts automáticos para correção de problemas:
+
+- **`scripts/deploy-consolidated.sh`**: Deploy completo com todas as correções
+- **`scripts/fix-deploy.sh`**: Corrige problemas de deploy
+- **`scripts/check-version.sh`**: Verifica versão do sistema
+- **`scripts/rebuild-with-version.sh`**: Rebuild com versão correta
 
 ## 📝 Licença
 

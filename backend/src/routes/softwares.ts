@@ -10,7 +10,7 @@ const softwareValidation = [
   body('servico').notEmpty().withMessage('Serviço/Plataforma é obrigatório').isLength({ min: 1, max: 255 }),
   body('hosting').notEmpty().withMessage('Hosting é obrigatório').isIn(['OnPremises', 'Cloud', 'Cloudstack', 'SaaSPublico']),
   body('acesso').optional().isIn(['Interno', 'Externo']),
-  body('sso').optional().isIn(['Aplicavel', 'Integrado', 'PossivelUpgradeLicenca', 'SemPossibilidade', 'Desenvolver']),
+  body('sso').optional().isIn(['Aplicavel', 'Integrado', 'PossivelUpgrade', 'SemPossibilidade', 'Desenvolver']),
   body('mfa').optional().isIn(['NaoTemPossibilidade', 'Habilitado', 'NaoAplicavel']),
   body('criticidade').optional().isIn(['Alta', 'Media', 'Baixa']),
   body('url').optional().isLength({ max: 500 }),

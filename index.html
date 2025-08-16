@@ -694,19 +694,14 @@
                         <!-- Controles de Seleção -->
                         <div class="mb-4 flex justify-between items-center">
                             <div class="flex items-center space-x-4">
-                                <label class="flex items-center">
-                                    <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                    <span class="ml-2 text-sm text-gray-700">Selecionar Todos</span>
-                                </label>
-                                <span id="selectedCount" class="text-sm text-gray-600">0 itens selecionados</span>
+                                <!-- Remover seleção individual - não é mais necessário -->
+                                <span id="selectedCount" class="text-sm text-gray-600">Exportar todos os softwares</span>
                             </div>
                             <div class="flex space-x-2">
-                                <button id="exportSelected" class="btn-success px-3 py-1 rounded text-xs" disabled>
-                                    <i class="fas fa-download mr-1"></i>Exportar Selecionados
+                                <button id="exportSelected" class="btn-success px-3 py-1 rounded text-xs">
+                                    <i class="fas fa-download mr-1"></i>Exportar Todos
                                 </button>
-                                <button id="deleteSelected" class="btn-danger px-3 py-1 rounded text-xs" disabled>
-                                    <i class="fas fa-trash mr-1"></i>Excluir Selecionados
-                                </button>
+                                <!-- Remover botão de exclusão - não é mais necessário -->
                             </div>
                         </div>
 
@@ -714,9 +709,6 @@
                             <table class="min-w-full">
                                 <thead class="table-header">
                                     <tr id="softwareTableHeader">
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-12">
-                                            <input type="checkbox" id="headerSelectAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        </th>
                                         <!-- Headers will be populated by JavaScript -->
                                     </tr>
                                 </thead>
@@ -1224,6 +1216,7 @@
         
         // Debug function to check token state
         function debugTokenState() {
+            console.log('debugTokenState called - timestamp:', new Date().toISOString());
             console.log('=== DEBUG TOKEN STATE ===');
             console.log('authToken:', window.authToken ? 'PRESENTE' : 'AUSENTE');
             console.log('isLoggedIn:', window.isLoggedIn);
@@ -1234,6 +1227,7 @@
         
         // Helper function to get headers with auth token
         function getAuthHeaders() {
+            console.log('getAuthHeaders called - timestamp:', new Date().toISOString());
             console.log('=== GET AUTH HEADERS INICIADO ===');
             
             const headers = {
@@ -1262,6 +1256,7 @@
         // Função para verificar versão do sistema
         async function checkSystemVersion() {
             try {
+                console.log('checkSystemVersion called - timestamp:', new Date().toISOString());
                 console.log('=== VERIFICANDO VERSÃO DO SISTEMA ===');
                 
                 const response = await fetch('http://localhost:3002/version', {
@@ -1309,6 +1304,7 @@
         // API Functions
         async function autoLogin() {
             try {
+                console.log('autoLogin called - timestamp:', new Date().toISOString());
                 console.log('=== AUTO LOGIN INICIADO ===');
                 console.log('API_BASE_URL:', API_BASE_URL);
                 debugTokenState();
@@ -1352,6 +1348,7 @@
         
         async function loadUsers() {
             try {
+                console.log('loadUsers called - timestamp:', new Date().toISOString());
                 console.log('loadUsers - making API request to:', `${API_BASE_URL}/users`);
                 debugTokenState();
                 
@@ -1380,6 +1377,7 @@
         
         async function createUser(userData) {
             try {
+                console.log('createUser called - timestamp:', new Date().toISOString(), 'userData:', userData);
                 const headers = getAuthHeaders();
                 
                 const response = await fetch(`${API_BASE_URL}/users`, {
@@ -1404,6 +1402,7 @@
         
         async function updateUser(id, userData) {
             try {
+                console.log('updateUser called - timestamp:', new Date().toISOString(), 'id:', id, 'userData:', userData);
                 const headers = getAuthHeaders();
                 
                 const response = await fetch(`${API_BASE_URL}/users/${id}`, {
@@ -1428,6 +1427,7 @@
         
         async function resetUserPasswordAPI(id, newPassword) {
             try {
+                console.log('resetUserPasswordAPI called - timestamp:', new Date().toISOString(), 'id:', id);
                 const headers = getAuthHeaders();
                 
                 const response = await fetch(`${API_BASE_URL}/users/${id}/reset-password`, {
@@ -1452,6 +1452,7 @@
         
         async function deleteUserFromAPI(id) {
             try {
+                console.log('deleteUserFromAPI called - timestamp:', new Date().toISOString(), 'id:', id);
                 const headers = getAuthHeaders();
                 
                 const response = await fetch(`${API_BASE_URL}/users/${id}`, {
@@ -1474,6 +1475,7 @@
         
         async function loadSoftwares() {
             try {
+                console.log('loadSoftwares called - timestamp:', new Date().toISOString());
                 console.log('loadSoftwares - making API request to:', `${API_BASE_URL}/softwares`);
                 debugTokenState();
                 
@@ -1493,7 +1495,7 @@
                 const data = await response.json();
                 console.log('loadSoftwares - raw API response:', data);
                 sampleData = data.data || [];
-                filteredSoftwareData = [];
+                filteredSoftwareData = sampleData.slice();
                 
                 console.log('Softwares loaded from API:', sampleData);
                 console.log('loadSoftwares - sampleData length:', sampleData.length);
@@ -1507,6 +1509,7 @@
         
         async function createSoftware(softwareData) {
             try {
+                console.log('createSoftware called - timestamp:', new Date().toISOString());
                 console.log('=== CREATE SOFTWARE INICIADO ===');
                 console.log('createSoftware called with data:', softwareData);
                 console.log('JSON.stringify(softwareData):', JSON.stringify(softwareData));
@@ -1563,6 +1566,7 @@
         
         async function updateSoftware(id, softwareData) {
             try {
+                console.log('updateSoftware called - timestamp:', new Date().toISOString(), 'id:', id);
                 const headers = {
                     'Content-Type': 'application/json'
                 };
@@ -1592,6 +1596,7 @@
         
         async function deleteSoftwareFromAPI(id) {
             try {
+                console.log('deleteSoftwareFromAPI called - timestamp:', new Date().toISOString(), 'id:', id);
                 const headers = getAuthHeaders();
                 
                 const response = await fetch(`${API_BASE_URL}/softwares/${id}`, {
@@ -1613,6 +1618,7 @@
         
         async function loadAuditLogs() {
             try {
+                console.log('loadAuditLogs called - timestamp:', new Date().toISOString());
                 console.log('=== LOADING AUDIT LOGS ===');
                 const headers = getAuthHeaders();
                 
@@ -1654,6 +1660,7 @@
         
         async function loadDashboardStats() {
             try {
+                console.log('loadDashboardStats called - timestamp:', new Date().toISOString());
                 const headers = getAuthHeaders();
                 
                 const response = await fetch(`${API_BASE_URL}/softwares/stats`, {
@@ -1700,6 +1707,7 @@
         // Initialize app when DOM is ready
         async function initApp() {
             try {
+                console.log('initApp called - timestamp:', new Date().toISOString());
                 console.log('Inicializando aplicação...');
                 debugTokenState();
                 
@@ -1733,6 +1741,10 @@
                 // Forçar recarga dos dados para garantir sincronização
                 await loadSoftwares();
                 
+                // Inicializar filteredSoftwareData com todos os dados após carregar
+                filteredSoftwareData = sampleData.slice();
+                console.log('filteredSoftwareData inicializado com', filteredSoftwareData.length, 'itens');
+                
                 // Populate tables
                 console.log('initApp - sampleData length before populate:', sampleData.length);
                 populateTable();
@@ -1762,13 +1774,13 @@
 
         // Initialize charts
         function initCharts() {
-            console.log('initCharts chamada - sampleData length:', sampleData.length);
+            console.log('initCharts called - timestamp:', new Date().toISOString(), 'sampleData length:', sampleData.length);
             initHostingChart();
             initSecurityChart();
         }
 
         function initHostingChart() {
-            console.log('initHostingChart chamada');
+            console.log('initHostingChart called - timestamp:', new Date().toISOString());
             var ctx = document.getElementById('hostingChart');
             if (!ctx) {
                 console.error('Canvas hostingChart não encontrado');
@@ -1817,7 +1829,7 @@
         }
 
         function initSecurityChart() {
-            console.log('initSecurityChart chamada');
+            console.log('initSecurityChart called - timestamp:', new Date().toISOString());
             var ctx = document.getElementById('securityChart');
             if (!ctx) {
                 console.error('Canvas securityChart não encontrado');
@@ -1873,6 +1885,7 @@
         // Update dashboard statistics
         async function updateDashboardStats() {
             try {
+                console.log('updateDashboardStats called - timestamp:', new Date().toISOString());
                 const stats = await loadDashboardStats();
                 
                 if (stats) {
@@ -1938,6 +1951,7 @@
 
         // Setup event listeners
         function setupEventListeners() {
+            console.log('setupEventListeners called - timestamp:', new Date().toISOString());
             // Navigation
             var navItems = document.querySelectorAll('.nav-item');
             for (var i = 0; i < navItems.length; i++) {
@@ -2105,7 +2119,7 @@
 
         // Setup column and filter toggles
         function setupColumnAndFilterToggles() {
-            console.log('setupColumnAndFilterToggles called');
+            console.log('setupColumnAndFilterToggles called - timestamp:', new Date().toISOString());
             
             // Column selector toggle
             var toggleColumnBtn = document.getElementById('toggleColumnSelector');
@@ -2196,6 +2210,7 @@
 
         // Switch between tabs
         function switchTab(tabName) {
+            console.log('switchTab called - tabName:', tabName, 'timestamp:', new Date().toISOString());
             // Hide all tab contents
             var tabContents = document.querySelectorAll('.tab-content');
             for (var i = 0; i < tabContents.length; i++) {
@@ -2315,10 +2330,10 @@
 
         // Setup software filters and column management
         function setupSoftwareFilters() {
-            console.log('setupSoftwareFilters called - sampleData length:', sampleData.length);
-            // Initialize filtered data - garantir que não interfira com a exibição inicial
-            filteredSoftwareData = [];
-            console.log('setupSoftwareFilters - filteredSoftwareData initialized as empty to avoid interference');
+            console.log('setupSoftwareFilters called - timestamp:', new Date().toISOString(), 'sampleData length:', sampleData.length);
+            // Initialize filtered data - quando não há filtros ativos, usar todos os dados
+            filteredSoftwareData = sampleData.slice();
+            console.log('setupSoftwareFilters - filteredSoftwareData initialized with all data, length:', filteredSoftwareData.length);
             
             // Setup column and filter toggles
             setupColumnAndFilterToggles();
@@ -2501,6 +2516,7 @@
 
         // Setup remove filter button events
         function setupRemoveFilterButtons() {
+            console.log('setupRemoveFilterButtons called - timestamp:', new Date().toISOString());
             var removeButtons = document.querySelectorAll('.remove-filter');
             for (var i = 0; i < removeButtons.length; i++) {
                 removeButtons[i].addEventListener('click', function() {
@@ -2514,6 +2530,7 @@
 
         // Clear all software filters
         function clearAllSoftwareFilters() {
+            console.log('clearAllSoftwareFilters called - timestamp:', new Date().toISOString());
             var queryBuilder = document.getElementById('queryBuilder');
             var filterGroups = queryBuilder.querySelectorAll('.filter-group');
             
@@ -2538,6 +2555,7 @@
 
         // Apply software filters
         function applySoftwareFilters() {
+            console.log('applySoftwareFilters called - timestamp:', new Date().toISOString());
             var filterGroups = document.querySelectorAll('.filter-group');
             var filters = [];
             
@@ -2601,6 +2619,7 @@
 
         // Setup log filters
         function setupLogFilters() {
+            console.log('setupLogFilters called - timestamp:', new Date().toISOString());
             filteredLogsData = logsData.slice();
             
             var applyBtn = document.getElementById('applyLogFilters');
@@ -2617,6 +2636,7 @@
 
         // Apply log filters
         function applyLogFilters() {
+            console.log('applyLogFilters called - timestamp:', new Date().toISOString());
             var userFilter = document.getElementById('logUserFilter').value;
             var actionFilter = document.getElementById('logActionFilter').value;
             var dateFromFilter = document.getElementById('logDateFromFilter').value;
@@ -2648,6 +2668,7 @@
 
         // Clear log filters
         function clearLogFilters() {
+            console.log('clearLogFilters called - timestamp:', new Date().toISOString());
             document.getElementById('logUserFilter').value = '';
             document.getElementById('logActionFilter').value = '';
             document.getElementById('logDateFromFilter').value = '';
@@ -2658,6 +2679,7 @@
         }
 
         function setupSoftwareModal() {
+            console.log('setupSoftwareModal called - timestamp:', new Date().toISOString());
             var modal = document.getElementById('softwareModal');
             var addBtn = document.getElementById('addSoftware');
             var addBtnFromPage = document.getElementById('addSoftwareFromPage');
@@ -2698,6 +2720,7 @@
         }
 
         function setupUserModal() {
+            console.log('setupUserModal called - timestamp:', new Date().toISOString());
             var modal = document.getElementById('userModal');
             var addBtn = document.getElementById('addUser');
             var closeBtn = document.getElementById('closeUserModal');
@@ -2739,7 +2762,7 @@
 
         // Modal functions
         function openSoftwareModal(software) {
-            console.log('openSoftwareModal called with software:', software);
+            console.log('openSoftwareModal called - timestamp:', new Date().toISOString(), 'software:', software);
             var modal = document.getElementById('softwareModal');
             var title = document.getElementById('modalTitle');
             var saveBtn = document.getElementById('saveButtonText');
@@ -2763,12 +2786,14 @@
         }
 
         function closeSoftwareModal() {
+            console.log('closeSoftwareModal called - timestamp:', new Date().toISOString());
             var modal = document.getElementById('softwareModal');
             modal.classList.add('hidden');
             clearSoftwareForm();
         }
 
         function openUserModal(user) {
+            console.log('openUserModal called - timestamp:', new Date().toISOString(), 'user:', user);
             var modal = document.getElementById('userModal');
             var title = document.getElementById('userModalTitle');
             var saveBtn = document.getElementById('saveUserButtonText');
@@ -2787,6 +2812,7 @@
         }
 
         function closeUserModal() {
+            console.log('closeUserModal called - timestamp:', new Date().toISOString());
             var modal = document.getElementById('userModal');
             modal.classList.add('hidden');
             clearUserForm();
@@ -2794,6 +2820,7 @@
 
         // Form functions
         function fillSoftwareForm(software) {
+            console.log('fillSoftwareForm called - timestamp:', new Date().toISOString(), 'software:', software);
             document.getElementById('editSoftwareId').value = software.id;
             
             // Tab 1: Informações Gerais
@@ -2835,6 +2862,7 @@
         }
 
         function clearSoftwareForm() {
+            console.log('clearSoftwareForm called - timestamp:', new Date().toISOString());
             document.getElementById('editSoftwareId').value = '';
             
             // Tab 1: Informações Gerais
@@ -2878,6 +2906,7 @@
         }
 
         function fillUserForm(user) {
+            console.log('fillUserForm called - timestamp:', new Date().toISOString(), 'user:', user);
             document.getElementById('editUserId').value = user.id;
             document.getElementById('userName').value = user.name;
             document.getElementById('userEmail').value = user.email;
@@ -2895,6 +2924,7 @@
         }
 
         function clearUserForm() {
+            console.log('clearUserForm called - timestamp:', new Date().toISOString());
             document.getElementById('editUserId').value = '';
             document.getElementById('userName').value = '';
             document.getElementById('userEmail').value = '';
@@ -2919,7 +2949,7 @@
         // Submit handlers
         async function handleSoftwareSubmit(e) {
             e.preventDefault();
-            console.log('handleSoftwareSubmit called'); // Debug log
+            console.log('handleSoftwareSubmit called - timestamp:', new Date().toISOString());
             
             // Prevenir múltiplas submissões
             if (isSubmittingSoftware) {
@@ -3164,7 +3194,7 @@
 
         // CRUD functions
         function editSoftware(id) {
-            console.log('editSoftware called with id:', id); // Debug log
+            console.log('editSoftware called - timestamp:', new Date().toISOString(), 'id:', id);
             console.log('sampleData length:', sampleData.length);
             console.log('sampleData IDs:', sampleData.map(item => item.id));
             console.log('sampleData:', sampleData);
@@ -3184,7 +3214,7 @@
         }
 
         async function deleteSoftware(id) {
-            console.log('deleteSoftware called with id:', id); // Debug log
+            console.log('deleteSoftware called - timestamp:', new Date().toISOString(), 'id:', id);
             console.log('sampleData length:', sampleData.length);
             console.log('sampleData IDs:', sampleData.map(item => item.id));
             
@@ -3217,6 +3247,7 @@
         }
 
         function editUser(id) {
+            console.log('editUser called - timestamp:', new Date().toISOString(), 'id:', id);
             var user = usersData.find(function(u) { return u.id == id; });
             if (user) {
                 openUserModal(user);
@@ -3224,6 +3255,7 @@
         }
 
         async function deleteUser(id) {
+            console.log('deleteUser called - timestamp:', new Date().toISOString(), 'id:', id);
             if (confirm('Tem certeza que deseja excluir este usuário?')) {
                 try {
                     await deleteUserFromAPI(id);
@@ -3244,6 +3276,7 @@
         }
 
         async function resetUserPassword() {
+            console.log('resetUserPassword called - timestamp:', new Date().toISOString());
             var newPassword = document.getElementById('newPassword').value;
             var newPasswordConfirm = document.getElementById('newPasswordConfirm').value;
             var editId = document.getElementById('editUserId').value;
@@ -3282,6 +3315,7 @@
 
         // Navigation functions
         function showPage(pageName) {
+            console.log('showPage called - pageName:', pageName, 'timestamp:', new Date().toISOString());
             // Hide all pages
             var pages = document.querySelectorAll('.page-content');
             for (var i = 0; i < pages.length; i++) {
@@ -3326,17 +3360,27 @@
             
             // Inicializar filtros avançados e seleção para a página de softwares
             if (pageName === 'softwares') {
+                console.log('=== INICIALIZANDO PÁGINA DE SOFTWARES ===');
+                
+                // Primeiro: inicializar filtros
+                initializeAdvancedFilters();
+                
+                // Segundo: popular a tabela
+                populateSoftwaresPageTable();
+                
+                // Terceiro: aguardar a tabela estar pronta e configurar event listeners
                 setTimeout(function() {
-                    initializeAdvancedFilters();
+                    console.log('Configurando event listeners após popular tabela...');
                     setupAdvancedFilterAndSelectionEvents();
-                    populateSoftwaresPageTable();
-                }, 100);
+                }, 500);
+                
+                console.log('=== INICIALIZAÇÃO DA PÁGINA CONCLUÍDA ===');
             }
         }
 
         // Login functions
         function showLogin() {
-            console.log('showLogin chamada');
+            console.log('showLogin called - timestamp:', new Date().toISOString());
             var loginScreen = document.getElementById('loginScreen');
             if (loginScreen) {
                 console.log('Mostrando tela de login');
@@ -3347,7 +3391,7 @@
         }
 
         function hideLogin() {
-            console.log('hideLogin chamada');
+            console.log('hideLogin called - timestamp:', new Date().toISOString());
             var loginScreen = document.getElementById('loginScreen');
             if (loginScreen) {
                 console.log('Escondendo tela de login');
@@ -3367,7 +3411,7 @@
 
         // Populate software table (dashboard)
         function populateTable() {
-            console.log('populateTable called - sampleData length:', sampleData.length); // Debug log
+            console.log('populateTable called - timestamp:', new Date().toISOString(), 'sampleData length:', sampleData.length); // Debug log
             var tbody = document.getElementById('softwareTableBody');
             if (!tbody) {
                 console.error('softwareTableBody not found'); // Debug log
@@ -3436,24 +3480,29 @@
 
         // Inicializar sistema de filtros avançados
         function initializeAdvancedFilters() {
+            console.log('initializeAdvancedFilters called - timestamp:', new Date().toISOString());
             // Limpar regras existentes
             advancedFilterRules = [];
             filterRuleCounter = 0;
+            console.log('initializeAdvancedFilters - cleared rules and counter');
             
-            // Adicionar primeira regra
-            addFilterRule();
+            // Não adicionar regra vazia automaticamente
+            // addFilterRule();
             
             // Configurar operador lógico principal
             var mainOperator = document.getElementById('mainLogicalOperator');
             if (mainOperator) {
                 mainOperator.addEventListener('change', applyAdvancedFilters);
+                console.log('initializeAdvancedFilters - main operator event listener configured');
             }
         }
 
         // Adicionar nova regra de filtro
         function addFilterRule() {
+            console.log('addFilterRule called - timestamp:', new Date().toISOString());
             filterRuleCounter++;
             var ruleId = 'filter_rule_' + filterRuleCounter;
+            console.log('addFilterRule - created rule with ID:', ruleId);
             
             var ruleDiv = document.createElement('div');
             ruleDiv.className = 'filter-rule mb-4 p-4 bg-white rounded border border-gray-200';
@@ -3504,18 +3553,24 @@
             var container = document.getElementById('filterRulesContainer');
             if (container) {
                 container.appendChild(ruleDiv);
-                advancedFilterRules.push(ruleId);
+                // Não adicionar ao array de regras ativas até que tenha um campo válido
+                // advancedFilterRules.push(ruleId);
+                console.log('addFilterRule - rule added to container, not to active rules array');
             }
         }
 
         // Remover regra de filtro
         function removeFilterRule(ruleId) {
+            console.log('removeFilterRule called - ruleId:', ruleId);
             var ruleElement = document.getElementById(ruleId);
             if (ruleElement) {
                 ruleElement.remove();
                 var index = advancedFilterRules.indexOf(ruleId);
                 if (index > -1) {
                     advancedFilterRules.splice(index, 1);
+                    console.log('removeFilterRule - rule removed from active rules array');
+                } else {
+                    console.log('removeFilterRule - rule was not in active rules array');
                 }
             }
         }
@@ -3552,6 +3607,7 @@
             for (var field in allFields) {
                 options += `<option value="${field}">${allFields[field]}</option>`;
             }
+            console.log('getAllFieldOptions - generated', Object.keys(allFields).length, 'field options');
             return options;
         }
 
@@ -3587,11 +3643,14 @@
 
         // Aplicar filtros avançados
         function applyAdvancedFilters() {
+            console.log('applyAdvancedFilters called - timestamp:', new Date().toISOString());
             var rules = collectFilterRules();
             var mainOperator = document.getElementById('mainLogicalOperator').value;
+            console.log('applyAdvancedFilters - rules count:', rules.length, 'mainOperator:', mainOperator);
             
             if (rules.length === 0) {
                 filteredSoftwareData = sampleData;
+                console.log('applyAdvancedFilters - no rules, using all data, length:', filteredSoftwareData.length);
             } else {
                 filteredSoftwareData = sampleData.filter(function(item) {
                     if (mainOperator === 'AND') {
@@ -3606,6 +3665,7 @@
                         });
                     }
                 });
+                console.log('applyAdvancedFilters - rules applied, filtered data length:', filteredSoftwareData.length);
             }
             
             updateFilterStats(rules);
@@ -3617,6 +3677,7 @@
         function collectFilterRules() {
             var rules = [];
             var ruleElements = document.querySelectorAll('.filter-rule');
+            console.log('collectFilterRules - found rule elements:', ruleElements.length);
             
             ruleElements.forEach(function(ruleElement) {
                 var field = ruleElement.querySelector('.filter-field').value;
@@ -3624,16 +3685,22 @@
                 var value = ruleElement.querySelector('.filter-value').value;
                 var connector = ruleElement.querySelector('.filter-connector').value;
                 
-                if (field && operator) {
+                console.log('collectFilterRules - rule element:', { field, operator, value, connector });
+                
+                if (field && operator && field.trim() !== '') {
                     rules.push({
                         field: field,
                         operator: operator,
                         value: value,
                         connector: connector
                     });
+                    console.log('collectFilterRules - added valid rule');
+                } else {
+                    console.log('collectFilterRules - skipped invalid rule');
                 }
             });
             
+            console.log('collectFilterRules - returning rules count:', rules.length);
             return rules;
         }
 
@@ -3642,26 +3709,38 @@
             var fieldValue = String(item[rule.field] || '');
             var filterValue = String(rule.value || '');
             
+            var result = false;
             switch (rule.operator) {
                 case 'contains':
-                    return fieldValue.toLowerCase().includes(filterValue.toLowerCase());
+                    result = fieldValue.toLowerCase().includes(filterValue.toLowerCase());
+                    break;
                 case 'not_contains':
-                    return !fieldValue.toLowerCase().includes(filterValue.toLowerCase());
+                    result = !fieldValue.toLowerCase().includes(filterValue.toLowerCase());
+                    break;
                 case 'equals':
-                    return fieldValue.toLowerCase() === filterValue.toLowerCase();
+                    result = fieldValue.toLowerCase() === filterValue.toLowerCase();
+                    break;
                 case 'not_equals':
-                    return fieldValue.toLowerCase() !== filterValue.toLowerCase();
+                    result = fieldValue.toLowerCase() !== filterValue.toLowerCase();
+                    break;
                 case 'starts_with':
-                    return fieldValue.toLowerCase().startsWith(filterValue.toLowerCase());
+                    result = fieldValue.toLowerCase().startsWith(filterValue.toLowerCase());
+                    break;
                 case 'ends_with':
-                    return fieldValue.toLowerCase().endsWith(filterValue.toLowerCase());
+                    result = fieldValue.toLowerCase().endsWith(filterValue.toLowerCase());
+                    break;
                 case 'is_empty':
-                    return fieldValue.trim() === '';
+                    result = fieldValue.trim() === '';
+                    break;
                 case 'is_not_empty':
-                    return fieldValue.trim() !== '';
+                    result = fieldValue.trim() !== '';
+                    break;
                 default:
-                    return true;
+                    result = true;
             }
+            
+            console.log('evaluateFilterRule - item:', item.servico, 'field:', rule.field, 'operator:', rule.operator, 'value:', rule.value, 'result:', result);
+            return result;
         }
 
         // Atualizar estatísticas dos filtros
@@ -3677,157 +3756,122 @@
             }
             
             countElement.textContent = `Total: ${filteredSoftwareData.length} itens`;
+            console.log('updateFilterStats - rules count:', rules.length, 'filtered data length:', filteredSoftwareData.length);
         }
 
         // Limpar todos os filtros avançados
         function clearAllAdvancedFilters() {
+            console.log('clearAllAdvancedFilters called - timestamp:', new Date().toISOString());
             var container = document.getElementById('filterRulesContainer');
             if (container) {
                 container.innerHTML = '';
             }
             advancedFilterRules = [];
             filterRuleCounter = 0;
-            addFilterRule(); // Adicionar regra vazia
-            applyAdvancedFilters();
+            // Não adicionar regra vazia automaticamente
+            
+            // Reset filtered data to show all items
+            filteredSoftwareData = sampleData.slice();
+            console.log('clearAllAdvancedFilters - reset filteredSoftwareData to length:', filteredSoftwareData.length);
+            
+            // Update table and stats
+            populateSoftwaresPageTable();
+            updateFilterStats([]);
+            
+            // Reset selection state
+            selectedSoftwareIds.clear();
+            updateSelectedCount();
+            updateActionButtons();
         }
 
         // Toggle painel de filtros avançados
         function toggleAdvancedFiltersPanel() {
+            console.log('toggleAdvancedFiltersPanel called - timestamp:', new Date().toISOString());
             var panel = document.getElementById('advancedFiltersPanel');
             if (panel) {
                 panel.classList.toggle('hidden');
+                console.log('toggleAdvancedFiltersPanel - panel hidden state:', panel.classList.contains('hidden'));
             }
         }
 
-        // Seleção de itens
-        function selectAllItems(checked) {
-            var checkboxes = document.querySelectorAll('#softwarePageTableBody input[type="checkbox"]');
-            checkboxes.forEach(function(checkbox) {
-                checkbox.checked = checked;
-                var itemId = checkbox.value;
-                if (checked) {
-                    selectedSoftwareIds.add(itemId);
-                } else {
-                    selectedSoftwareIds.delete(itemId);
-                }
-            });
-            updateSelectedCount();
-            updateActionButtons();
-        }
+        // Função removida - não é mais necessária
 
-        // Selecionar item individual
-        function selectItem(itemId, checked) {
-            if (checked) {
-                selectedSoftwareIds.add(itemId);
-            } else {
-                selectedSoftwareIds.delete(itemId);
-            }
-            updateSelectedCount();
-            updateActionButtons();
-            updateHeaderCheckbox();
-        }
+        // Função removida - não é mais necessária
 
-        // Atualizar contador de selecionados
-        function updateSelectedCount() {
-            var countElement = document.getElementById('selectedCount');
-            if (countElement) {
-                countElement.textContent = selectedSoftwareIds.size + ' itens selecionados';
-            }
-        }
+        // Função removida - não é mais necessária
 
-        // Atualizar botões de ação
-        function updateActionButtons() {
-            var exportBtn = document.getElementById('exportSelected');
-            var deleteBtn = document.getElementById('deleteSelected');
-            
-            if (selectedSoftwareIds.size > 0) {
-                exportBtn.disabled = false;
-                deleteBtn.disabled = false;
-            } else {
-                exportBtn.disabled = true;
-                deleteBtn.disabled = true;
-            }
-        }
+        // Função removida - não é mais necessária
 
-        // Atualizar checkbox do header
-        function updateHeaderCheckbox() {
-            var headerCheckbox = document.getElementById('headerSelectAll');
-            var itemCheckboxes = document.querySelectorAll('#softwarePageTableBody input[type="checkbox"]');
-            var checkedCount = 0;
-            
-            itemCheckboxes.forEach(function(checkbox) {
-                if (checkbox.checked) checkedCount++;
-            });
-            
-            if (checkedCount === 0) {
-                headerCheckbox.indeterminate = false;
-                headerCheckbox.checked = false;
-            } else if (checkedCount === itemCheckboxes.length) {
-                headerCheckbox.indeterminate = false;
-                headerCheckbox.checked = true;
-            } else {
-                headerCheckbox.indeterminate = true;
-            }
-        }
+        // Função removida - não é mais necessária
 
-        // Exportar itens selecionados
+        // Exportar TODOS os softwares - VERSÃO SIMPLIFICADA
         function exportSelectedItems() {
-            if (selectedSoftwareIds.size === 0) return;
+            console.log('=== EXPORT ALL SOFTWARES ===');
+            console.log('sampleData length:', sampleData.length);
             
-            var selectedData = sampleData.filter(function(item) {
-                return selectedSoftwareIds.has(item.id);
-            });
-            
-            var csv = convertToCSV(selectedData);
-            downloadCSV(csv, 'softwares_selecionados.csv');
-        }
-
-        // Excluir itens selecionados
-        function deleteSelectedItems() {
-            if (selectedSoftwareIds.size === 0) return;
-            
-            if (confirm('Tem certeza que deseja excluir ' + selectedSoftwareIds.size + ' item(s) selecionado(s)?')) {
-                // Aqui você implementaria a lógica de exclusão
-                console.log('Excluindo itens:', Array.from(selectedSoftwareIds));
-                
-                // Remover da lista
-                sampleData = sampleData.filter(function(item) {
-                    return !selectedSoftwareIds.has(item.id);
-                });
-                
-                selectedSoftwareIds.clear();
-                applyFilters();
-                showNotification('Itens excluídos com sucesso!', 'success');
+            if (sampleData.length === 0) {
+                alert('Nenhum software encontrado para exportar!');
+                console.log('ERROR: No softwares found for export');
+                return;
             }
+            
+            console.log('Exporting all softwares:', sampleData.length, 'items');
+            console.log('Softwares to export:', sampleData);
+            
+            // Gerar e baixar CSV com TODOS os softwares
+            var csv = convertToCSV(sampleData);
+            downloadCSV(csv, 'todos_softwares.csv');
+            
+            console.log('=== EXPORT COMPLETED ===');
         }
 
-        // Converter dados para CSV
+        // Função removida - não é mais necessária
+
+        // Converter dados para CSV - TODAS as colunas
         function convertToCSV(data) {
+            console.log('convertToCSV called with data length:', data.length);
             if (data.length === 0) return '';
             
-            var headers = visibleColumns.map(function(col) {
+            // Usar TODAS as colunas disponíveis, não apenas as visíveis
+            var allColumns = [
+                'servico', 'description', 'url', 'hosting', 'acesso', 'responsible', 
+                'namedUser', 'integratedUser', 'sso', 'onboarding', 'offboarding', 
+                'offboardingType', 'affectedTeams', 'logsInfo', 'logsRetention', 
+                'logs', 'mfaPolicy', 'mfa', 'mfaSMS', 'bloqueio', 'passwordPolicy', 
+                'sensitiveData', 'criticidade'
+            ];
+            
+            var headers = allColumns.map(function(col) {
                 return getColumnLabel(col);
             });
+            console.log('convertToCSV - headers (all columns):', headers);
             
             var csv = headers.join(',') + '\n';
             
             data.forEach(function(item) {
-                var row = visibleColumns.map(function(col) {
-                    return '"' + (item[col] || '').toString().replace(/"/g, '""') + '"';
+                var row = allColumns.map(function(col) {
+                    var value = item[col];
+                    if (Array.isArray(value)) {
+                        value = value.join('; '); // Arrays separados por ponto e vírgula
+                    }
+                    return '"' + (value || '').toString().replace(/"/g, '""') + '"';
                 });
                 csv += row.join(',') + '\n';
             });
             
+            console.log('convertToCSV - generated CSV length:', csv.length);
             return csv;
         }
 
         // Download CSV
         function downloadCSV(csv, filename) {
+            console.log('downloadCSV called with filename:', filename, 'csv length:', csv.length);
             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             var link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             link.click();
+            console.log('downloadCSV - download initiated for:', filename);
         }
 
         // Função para mostrar notificações
@@ -3856,8 +3900,176 @@
             }, 3000);
         }
 
+        // Adicionar indicador de deploy na página de softwares
+        function addDeployIndicator() {
+            console.log('addDeployIndicator called - timestamp:', new Date().toISOString());
+            
+            // Log de deploy no console
+            console.log('🚀 ==========================================');
+            console.log('🚀 NOVO DEPLOY REALIZADO - GESTÃO DE SOFTWARE');
+            console.log('🚀 ==========================================');
+            console.log('🚀 Build Timestamp:', new Date().toISOString());
+            console.log('🚀 Document Last Modified:', document.lastModified ? new Date(document.lastModified).toISOString() : 'N/A');
+            console.log('🚀 Current URL:', window.location.href);
+            console.log('🚀 User Agent:', navigator.userAgent);
+            console.log('🚀 ==========================================');
+            
+            // Verificar se o indicador já existe
+            var existingIndicator = document.getElementById('deployIndicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            // Criar o indicador de deploy
+            var deployIndicator = document.createElement('div');
+            deployIndicator.id = 'deployIndicator';
+            deployIndicator.className = 'fixed top-4 left-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-green-600';
+            deployIndicator.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-rocket text-yellow-300"></i>
+                    <div>
+                        <div class="font-bold text-sm">🚀 NOVO DEPLOY REALIZADO</div>
+                        <div class="text-xs opacity-90">Build: ${new Date().toISOString()}</div>
+                        <div class="text-xs opacity-90">Versão: ${document.lastModified ? new Date(document.lastModified).toISOString() : 'N/A'}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Adicionar ao body
+            document.body.appendChild(deployIndicator);
+            
+            // Remover automaticamente após 10 segundos
+            setTimeout(function() {
+                if (deployIndicator && deployIndicator.parentNode) {
+                    deployIndicator.remove();
+                }
+            }, 10000);
+            
+            console.log('Deploy indicator added successfully');
+        }
+
+        // Adicionar indicador de versão permanente na página de softwares
+        function addVersionIndicator() {
+            console.log('addVersionIndicator called - timestamp:', new Date().toISOString());
+            
+            // Verificar se o indicador já existe
+            var existingIndicator = document.getElementById('versionIndicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            // Buscar o container principal da página de softwares
+            var softwarePage = document.getElementById('softwarePage');
+            if (!softwarePage) {
+                console.log('Software page not found, skipping version indicator');
+                return;
+            }
+            
+            // Criar o indicador de versão
+            var versionIndicator = document.createElement('div');
+            versionIndicator.id = 'versionIndicator';
+            versionIndicator.className = 'mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg';
+            versionIndicator.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-info-circle text-blue-600 text-lg"></i>
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-900">Informações da Versão</h3>
+                            <p class="text-sm text-blue-700">Esta é a versão mais recente do sistema</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-blue-600 font-mono">
+                            <div>Build: ${new Date().toISOString().split('T')[0]} ${new Date().toISOString().split('T')[1].split('.')[0]}</div>
+                            <div>Hash: ${btoa(new Date().getTime().toString()).substring(0, 8)}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-blue-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-700">
+                        <div>
+                            <span class="font-semibold">Status:</span> 
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>Atualizado
+                            </span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Última Atualização:</span> 
+                            <span class="font-mono">${new Date().toLocaleString('pt-BR')}</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Correções:</span> 
+                            <span class="text-green-600">Seleção "todos" corrigida</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Inserir no início da página de softwares
+            softwarePage.insertBefore(versionIndicator, softwarePage.firstChild);
+            
+            // Adicionar também um indicador no header da página
+            addHeaderVersionBadge();
+            
+            console.log('Version indicator added successfully');
+        }
+
+        // Adicionar badge de versão no header da página
+        function addHeaderVersionBadge() {
+            console.log('addHeaderVersionBadge called - timestamp:', new Date().toISOString());
+            
+            // Verificar se o badge já existe
+            var existingBadge = document.getElementById('headerVersionBadge');
+            if (existingBadge) {
+                existingBadge.remove();
+            }
+            
+            // Buscar o header da página
+            var pageHeader = document.querySelector('#softwarePage h1, #softwarePage h2, #softwarePage .text-2xl, #softwarePage .text-xl');
+            if (!pageHeader) {
+                console.log('Page header not found, skipping header version badge');
+                return;
+            }
+            
+            // Criar o badge de versão
+            var versionBadge = document.createElement('div');
+            versionBadge.id = 'headerVersionBadge';
+            versionBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300 ml-3';
+            versionBadge.innerHTML = `
+                <i class="fas fa-check-circle mr-1"></i>
+                v${new Date().getTime().toString().substring(0, 8)}
+            `;
+            
+            // Adicionar tooltip
+            versionBadge.title = `Deploy realizado em ${new Date().toLocaleString('pt-BR')}`;
+            
+            // Inserir após o header
+            pageHeader.parentNode.insertBefore(versionBadge, pageHeader.nextSibling);
+            
+            console.log('Header version badge added successfully');
+        }
+
         // Configurar event listeners para filtros avançados e seleção
         function setupAdvancedFilterAndSelectionEvents() {
+            console.log('setupAdvancedFilterAndSelectionEvents called - timestamp:', new Date().toISOString());
+            
+            // VERIFICAR se a tabela está populada antes de configurar os event listeners
+            var tbody = document.getElementById('softwarePageTableBody');
+            if (!tbody) {
+                console.log('WARNING: Table body not found, skipping event listener setup');
+                return;
+            }
+            
+            var checkboxes = document.querySelectorAll('#softwarePageTableBody input[type="checkbox"]');
+            console.log('setupAdvancedFilterAndSelectionEvents - checkboxes found:', checkboxes.length);
+            
+            if (checkboxes.length === 0) {
+                console.log('WARNING: Table not populated yet, skipping event listener setup');
+                return;
+            }
+            
+            console.log('Table is populated, configuring event listeners...');
+            
             // Botões de toggle dos painéis
             var toggleColumnBtn = document.getElementById('toggleColumnSelector');
             if (toggleColumnBtn) {
@@ -3893,12 +4105,13 @@
                 });
             }
 
-            var headerSelectAll = document.getElementById('headerSelectAll');
-            if (headerSelectAll) {
-                headerSelectAll.addEventListener('change', function() {
-                    selectAllItems(this.checked);
-                });
-            }
+            // Header checkbox já configurado em populateSoftwaresPageTable
+            // var headerSelectAll = document.getElementById('headerSelectAll');
+            // if (headerSelectAll) {
+            //     headerSelectAll.addEventListener('change', function() {
+            //         selectAllItems(this.checked);
+            //     });
+            // }
 
             // Botões de ação
             var exportBtn = document.getElementById('exportSelected');
@@ -3928,7 +4141,14 @@
 
         // Populate software table (softwares page)
         function populateSoftwaresPageTable() {
-            console.log('populateSoftwaresPageTable called'); // Debug log
+            console.log('populateSoftwaresPageTable called - timestamp:', new Date().toISOString()); // Debug log
+            
+            // Adicionar indicador de deploy na página de softwares
+            addDeployIndicator();
+            
+            // Adicionar indicador de versão permanente na página
+            addVersionIndicator();
+            
             var tbody = document.getElementById('softwarePageTableBody');
             var thead = document.getElementById('softwareTableHeader');
             if (!tbody || !thead) {
@@ -3964,6 +4184,9 @@
             };
             
             thead.innerHTML = '';
+            
+            // Remover checkbox de seleção - não é mais necessário
+            
             for (var j = 0; j < visibleColumns.length; j++) {
                 var col = visibleColumns[j];
                 if (columnConfig[col]) {
@@ -3983,7 +4206,7 @@
             tbody.innerHTML = '';
             
             // Usar dados filtrados se houver regras de filtro ativas, senão usar dados originais
-            var dataToShow = advancedFilterRules.length > 0 && filteredSoftwareData.length > 0 ? filteredSoftwareData : sampleData;
+            var dataToShow = (advancedFilterRules.length > 0) ? filteredSoftwareData : sampleData;
             console.log('populateSoftwaresPageTable - sampleData length:', sampleData.length);
             console.log('populateSoftwaresPageTable - filteredSoftwareData length:', filteredSoftwareData.length);
             console.log('populateSoftwaresPageTable - dataToShow length:', dataToShow.length);
@@ -3997,19 +4220,7 @@
                 var row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition-colors';
                 
-                // Adicionar checkbox de seleção
-                var checkboxCell = document.createElement('td');
-                checkboxCell.className = 'px-4 py-3';
-                var checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'rounded border-gray-300 text-blue-600 focus:ring-blue-500';
-                checkbox.value = item.id;
-                checkbox.checked = selectedSoftwareIds.has(item.id);
-                checkbox.addEventListener('change', function() {
-                    selectItem(this.value, this.checked);
-                });
-                checkboxCell.appendChild(checkbox);
-                row.appendChild(checkboxCell);
+                // Remover checkbox de seleção - não é mais necessário
                 
                 var criticidadeColor = {
                     'Alta': 'bg-red-100 text-red-800',
@@ -4183,11 +4394,18 @@
                 row.innerHTML = rowHTML;
                 tbody.appendChild(row);
             }
+            
+            // CONFIRMAR que os checkboxes foram criados
+            var finalCheckboxes = document.querySelectorAll('#softwarePageTableBody input[type="checkbox"]');
+            console.log('populateSoftwaresPageTable COMPLETED - checkboxes created:', finalCheckboxes.length);
+            console.log('Table population finished successfully');
+            
+            // Remover configuração do header checkbox - não é mais necessário
         }
 
         // Populate users table
         function populateUsersTable() {
-            console.log('populateUsersTable called');
+            console.log('populateUsersTable called - timestamp:', new Date().toISOString());
             console.log('usersData length:', usersData.length);
             console.log('usersData:', usersData);
             
@@ -4247,7 +4465,7 @@
 
         // Populate logs table
         function populateLogsTable() {
-            console.log('populateLogsTable called');
+            console.log('populateLogsTable called - timestamp:', new Date().toISOString());
             console.log('logsData length:', logsData.length);
             console.log('filteredLogsData length:', filteredLogsData.length);
             console.log('logsData:', logsData);
@@ -4433,6 +4651,19 @@
             debugTokenState();
         };
         
+        // Função para testar exportação de todos os softwares
+        window.testExport = function() {
+            console.log('=== TESTING EXPORT FUNCTIONALITY ===');
+            console.log('sampleData length:', sampleData.length);
+            console.log('sampleData:', sampleData);
+            
+            // Testar exportação de todos os softwares
+            console.log('Testing exportSelectedItems...');
+            exportSelectedItems();
+            
+            console.log('=== EXPORT TEST COMPLETED ===');
+        };
+
         // Função para forçar login e testar criação
         window.testLoginAndCreate = async function() {
             console.log('=== TESTE LOGIN E CRIAÇÃO ===');

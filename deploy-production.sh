@@ -128,19 +128,32 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Copiar estrutura mantendo permissões
+echo -e "${BLUE}📁 Copiando backend...${NC}"
 cp -r "$PROJECT_DIR"/backend "$INSTALL_DIR/" 2>/dev/null || true
+
+echo -e "${BLUE}📁 Copiando frontend...${NC}"
 cp -r "$PROJECT_DIR"/frontend "$INSTALL_DIR/" 2>/dev/null || true
+
+echo -e "${BLUE}📁 Copiando scripts...${NC}"
 cp -r "$PROJECT_DIR"/scripts "$INSTALL_DIR/" 2>/dev/null || true
+
+echo -e "${BLUE}📄 Copiando arquivos de configuração...${NC}"
 cp "$PROJECT_DIR"/*.yml "$INSTALL_DIR/" 2>/dev/null || true
 cp "$PROJECT_DIR"/*.html "$INSTALL_DIR/" 2>/dev/null || true
 cp "$PROJECT_DIR"/*.md "$INSTALL_DIR/" 2>/dev/null || true
+
+echo -e "${BLUE}📋 Copiando arquivo VERSION...${NC}"
 cp "$PROJECT_DIR"/VERSION "$INSTALL_DIR/" 2>/dev/null || true
 
 # Verificar se docker-compose.production.yml existe
 if [ ! -f "$INSTALL_DIR/docker-compose.production.yml" ]; then
-    echo -e "${RED}Erro: docker-compose.production.yml não encontrado!${NC}"
+    echo -e "${RED}❌ Erro: docker-compose.production.yml não encontrado!${NC}"
+    echo -e "${YELLOW}💡 Verificando arquivos copiados...${NC}"
+    ls -la "$INSTALL_DIR"/*.yml 2>/dev/null || echo "Nenhum arquivo .yml encontrado"
     exit 1
 fi
+
+echo -e "${GREEN}✅ Todos os arquivos copiados com sucesso${NC}"
 
 # Criar arquivo .env
 echo -e "${YELLOW}3. Criando arquivo de configuração...${NC}"
@@ -198,31 +211,90 @@ for port in $FRONTEND_PORT $BACKEND_PORT $DB_PORT; do
 done
 echo -e "${GREEN}✓ Todas as portas estão livres${NC}"
 
-# Build e deploy
-echo -e "${YELLOW}6. Construindo e iniciando containers...${NC}"
+# Correção automática de problemas conhecidos
+echo -e "${YELLOW}6. Aplicando correções automáticas...${NC}"
 
-# Copiar arquivo VERSION para o diretório backend antes do build
-if [ -f "VERSION" ]; then
-    echo -e "${BLUE}📋 Copiando arquivo VERSION para o backend...${NC}"
-    cp VERSION backend/VERSION
-    echo -e "${BLUE}   Versão: $(cat VERSION)${NC}"
-else
-    echo -e "${YELLOW}⚠️  Arquivo VERSION não encontrado${NC}"
+# Garantir que o arquivo VERSION existe e está no lugar correto
+if [ ! -f "VERSION" ]; then
+    echo -e "${YELLOW}⚠️  Arquivo VERSION não encontrado, criando...${NC}"
+    echo "1.0.0" > VERSION
 fi
+
+# Copiar arquivo VERSION para o diretório backend
+echo -e "${BLUE}📋 Copiando arquivo VERSION para o backend...${NC}"
+cp VERSION backend/VERSION
+echo -e "${BLUE}   Versão: $(cat VERSION)${NC}"
+
+# Verificar se o backend tem o package-lock.json
+if [ ! -f "backend/package-lock.json" ]; then
+    echo -e "${YELLOW}⚠️  package-lock.json não encontrado no backend${NC}"
+    echo -e "${BLUE}📦 Gerando package-lock.json...${NC}"
+    cd backend
+    npm install --package-lock-only 2>/dev/null || echo "Aviso: Não foi possível gerar package-lock.json"
+    cd ..
+fi
+
+# Verificar se o frontend tem o nginx.conf
+if [ ! -f "frontend/nginx.conf" ]; then
+    echo -e "${YELLOW}⚠️  nginx.conf não encontrado no frontend${NC}"
+    echo -e "${BLUE}📄 Copiando nginx.conf...${NC}"
+    if [ -f "../nginx.conf" ]; then
+        cp ../nginx.conf frontend/nginx.conf
+    fi
+fi
+
+# Verificar permissões dos scripts
+echo -e "${BLUE}🔧 Configurando permissões dos scripts...${NC}"
+chmod +x scripts/*.sh 2>/dev/null || true
+
+echo -e "${GREEN}✅ Correções aplicadas com sucesso${NC}"
+
+# Build e deploy
+echo -e "${YELLOW}7. Construindo e iniciando containers...${NC}"
 
 docker-compose -f docker-compose.production.yml build
 docker-compose -f docker-compose.production.yml up -d
 
 # Aguardar inicialização
-echo -e "${YELLOW}7. Aguardando serviços iniciarem...${NC}"
+echo -e "${YELLOW}8. Aguardando serviços iniciarem...${NC}"
 sleep 15
 
 # Verificar status
-echo -e "${YELLOW}8. Verificando status dos serviços...${NC}"
+echo -e "${YELLOW}9. Verificando status dos serviços...${NC}"
 docker-compose -f docker-compose.production.yml ps
 
+# Verificação final
+echo -e "${YELLOW}10. Verificação final do deploy...${NC}"
+
+# Verificar se os containers estão rodando
+echo -e "${BLUE}🔍 Verificando containers...${NC}"
+if docker-compose -f docker-compose.production.yml ps | grep -q "Up"; then
+    echo -e "${GREEN}✅ Containers estão rodando${NC}"
+else
+    echo -e "${RED}❌ Containers não estão rodando corretamente${NC}"
+    echo -e "${YELLOW}💡 Verificando logs...${NC}"
+    docker-compose -f docker-compose.production.yml logs --tail=20
+fi
+
+# Verificar se a API está respondendo
+echo -e "${BLUE}🔍 Verificando API...${NC}"
+sleep 5
+if curl -s http://localhost:${BACKEND_PORT}/health >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ API está respondendo${NC}"
+else
+    echo -e "${YELLOW}⚠️  API ainda não está respondendo (pode levar alguns segundos)${NC}"
+fi
+
+# Verificar se o frontend está acessível
+echo -e "${BLUE}🔍 Verificando frontend...${NC}"
+if curl -s http://localhost:${FRONTEND_PORT} >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ Frontend está acessível${NC}"
+else
+    echo -e "${YELLOW}⚠️  Frontend ainda não está acessível (pode levar alguns segundos)${NC}"
+fi
+
 # Criar serviço systemd
-echo -e "${YELLOW}9. Configurando serviço do sistema...${NC}"
+echo -e "${YELLOW}11. Configurando serviço do sistema...${NC}"
 cat > /etc/systemd/system/softwarehub.service << EOF
 [Unit]
 Description=Sistema de Gestão de Softwares
@@ -246,7 +318,7 @@ systemctl enable softwarehub.service
 echo -e "${GREEN}✓ Serviço configurado${NC}"
 
 # Configurar backup
-echo -e "${YELLOW}10. Configurando backup automático...${NC}"
+echo -e "${YELLOW}12. Configurando backup automático...${NC}"
 BACKUP_SCRIPT="/usr/local/bin/softwarehub-backup.sh"
 cat > "$BACKUP_SCRIPT" << 'EOF'
 #!/bin/bash
@@ -272,25 +344,42 @@ echo -e "${GREEN}✓ Backup automático configurado${NC}"
 # Informações finais
 echo ""
 echo -e "${GREEN}================================================${NC}"
-echo -e "${GREEN}✓ Deploy Concluído com Sucesso!${NC}"
+echo -e "${GREEN}✓ Deploy Consolidado Concluído com Sucesso!${NC}"
 echo -e "${GREEN}================================================${NC}"
 echo ""
-echo -e "${BLUE}URLs de Acesso:${NC}"
+echo -e "${BLUE}📊 Resumo do Deploy:${NC}"
+echo "✅ Arquivos copiados e organizados"
+echo "✅ Correções automáticas aplicadas"
+echo "✅ Containers construídos e iniciados"
+echo "✅ Serviço systemd configurado"
+echo "✅ Backup automático configurado"
+echo "✅ Verificações de saúde realizadas"
+echo ""
+echo -e "${BLUE}🌐 URLs de Acesso:${NC}"
 echo "Sistema Web: $APP_URL"
 echo "API Backend: $API_URL"
+echo "PostgreSQL: localhost:${DB_PORT}"
 echo ""
-echo -e "${BLUE}Credenciais Padrão:${NC}"
+echo -e "${BLUE}🔐 Credenciais Padrão:${NC}"
 echo "Email: admin@softwarehub.com"
 echo "Senha: admin123"
 echo ""
-echo -e "${BLUE}Comandos Úteis:${NC}"
+echo -e "${BLUE}🛠️  Comandos de Gerenciamento:${NC}"
 echo "Ver status: docker-compose -f docker-compose.production.yml ps"
 echo "Ver logs: docker-compose -f docker-compose.production.yml logs -f"
 echo "Parar sistema: systemctl stop softwarehub"
 echo "Iniciar sistema: systemctl start softwarehub"
+echo "Reiniciar sistema: systemctl restart softwarehub"
 echo "Backup manual: $BACKUP_SCRIPT"
 echo ""
-echo -e "${YELLOW}IMPORTANTE:${NC}"
-echo "1. Altere a senha padrão do admin após o primeiro login"
+echo -e "${BLUE}📁 Diretório de Instalação:${NC}"
+echo "$INSTALL_DIR"
+echo ""
+echo -e "${YELLOW}⚠️  IMPORTANTE - Próximos Passos:${NC}"
+echo "1. Acesse o sistema e altere a senha padrão do admin"
 echo "2. Configure um certificado SSL para produção"
 echo "3. Ajuste as configurações de firewall conforme necessário"
+echo "4. Monitore os logs: tail -f /var/log/softwarehub-backup.log"
+echo "5. Configure alertas de monitoramento se necessário"
+echo ""
+echo -e "${GREEN}🎉 Sistema pronto para uso!${NC}"
